@@ -3,30 +3,38 @@
 import { useEffect, useState } from "react";
 
 const GlobalSettingsPage = () => {
-    const [settings, setSettings] = useState({
-        storagePath: "",
-        imageType: "jpg",
-        dateFormat: "dd.MM.yyyy",
-    });
+    const [settings, setSettings] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const response = await fetch("/api/settings");
                 if (!response.ok) {
-                    const errorData = await response.text();
-                    console.error("API Error Response:", errorData);
                     throw new Error("Failed to fetch settings.");
                 }
                 const data = await response.json();
                 setSettings(data);
-            } catch (error) {
-                console.error("Error fetching settings:", error);
+            } catch (err) {
+                setError(err.message);
             }
         };
-    
+
         fetchSettings();
     }, []);
+
+    if (error) return <div>Error: {error}</div>;
+    if (!settings) return <div>Loading...</div>;
+
+    return (
+        <div>
+            <h1>Global Settings</h1>
+            <p>Storage Path: {settings.storagePath}</p>
+            <p>Image Type: {settings.imageType}</p>
+            <p>Date Format: {settings.dateFormat}</p>
+        </div>
+    );
+};
     
 
     const handleSave = async () => {
