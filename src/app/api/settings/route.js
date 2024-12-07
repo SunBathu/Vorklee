@@ -33,3 +33,12 @@ export async function POST(req) {
         );
     }
 }
+
+const settings = await Settings.findOne({});
+if (!settings) {
+    await Settings.create({
+        storagePath: "C:\\storage\\path",
+        imageType: "jpg",
+        dateFormat: "dd.MM.yyyy",
+    });
+}

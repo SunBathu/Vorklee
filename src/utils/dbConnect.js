@@ -2,6 +2,12 @@ import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 30000,  // Increase timeout to 30 seconds
+});
+
 if (!MONGODB_URI) {
     throw new Error("Please define the MONGODB_URI environment variable in .env.local");
 }
@@ -23,6 +29,13 @@ export default async function dbConnect() {
             useUnifiedTopology: true,
         });
     }
-    cached.conn = await cached.promise;
-    return cached.conn;
+
+    try {
+        cached.conn = await cached.promise;
+        console.log("Database connected successfully!");
+        return cached.conn;
+    } catch (error) {
+        console.error("Database connection error:", error);
+        throw error;
+    }
 }

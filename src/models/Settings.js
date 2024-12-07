@@ -6,13 +6,6 @@ const SettingsSchema = new mongoose.Schema({
     dateFormat: { type: String, default: "dd.MM.yyyy" },
 }, { timestamps: true });
 
-const settings = await Settings.findOne({});
-if (!settings) {
-    await Settings.create({
-        storagePath: "C:\\storage\\path",
-        imageType: "jpg",
-        dateFormat: "dd.MM.yyyy",
-    });
-}
+
 
 export default mongoose.models.Settings || mongoose.model("Settings", SettingsSchema);
