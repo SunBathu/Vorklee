@@ -35,7 +35,7 @@ export async function POST(req) {
     }
 }
 
-const settings = await Settings.findOne({});
+const settings = await SettingsGlobal.findOne({});
 if (!settings) {
     await Settings.create({
         storagePath: "C:\\storage\\path",
