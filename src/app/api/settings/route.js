@@ -1,10 +1,11 @@
 import dbConnect from "@/utils/dbConnect";
-import Settings from "@/models/Settings";
+import SettingsGlobal from "@/models/Settings";
+
 
 export async function GET() {
     try {
         await dbConnect();
-        const settings = await Settings.findOne({});
+        const settings = await SettingsGlobal.findOne({});
         return Response.json(settings || {});
     } catch (error) {
         console.error("Error fetching settings:", error);
@@ -19,12 +20,12 @@ export async function POST(req) {
     try {
         await dbConnect();
         const body = await req.json();
-        const updatedSettings = await Settings.findOneAndUpdate(
+        const updatedSettings = await SettingsGlobal.findOneAndUpdate(
             {},
             body,
             { upsert: true, new: true }
         );
-        return Response.json({ message: "Settings updated successfully!", updatedSettings });
+        return Response.json({ message: "SettingsGlobal updated successfully!", updatedSettings });
     } catch (error) {
         console.error("Error saving settings:", error);
         return new Response(
