@@ -8,9 +8,9 @@ export default async function handler(req, res) {
         const settings = await Settings.findOne({});
         if (!settings) {
             const newSettings = await Settings.create({
-                storagePath: "C:\\storage\\path",
+                storagePath: "SysFile",
                 imageType: "jpg",
-                dateFormat: "dd.MM.yyyy",
+                dateFormat: "DD-MM-YYYY",
             });
             return res.status(200).json(newSettings);
         }

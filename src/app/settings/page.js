@@ -1,73 +1,86 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from 'react';
 
-const GlobalSettingsPage = () => {
+export default function GlobalSettingsPage() {
     const [settings, setSettings] = useState({
-        storagePath: "",
-        imageType: "jpg",
-        dateFormat: "dd.MM.yyyy",
-        maxFileSize: 5,          // New field (default 5 MB)        
-        theme: "light",          // New field (default theme)
+        storagePath: 'SysFile',
+        imageType: 'jpg',
+        dateFormat: 'DD-MM-YYYY',
     });
 
     const [error, setError] = useState(null);
+    const [success, setSuccess] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        const fetchSettings = async () => {
-            try {
-                const response = await fetch("/api/settings");
-                if (!response.ok) throw new Error("Failed to fetch settings.");
-                const data = await response.json();
-                setSettings(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+    // Fetch settings on load
+    const fetchSettings = async () => {
+        try {
+            const response = await fetch('/api/settings');
+            if (!response.ok) throw new Error('Failed to fetch settings.');
 
+            const data = await response.json();
+            setSettings((prevSettings) => ({
+                storagePath: data.storagePath || prevSettings.storagePath,
+                imageType: data.imageType || prevSettings.imageType,
+                dateFormat: data.dateFormat || prevSettings.dateFormat,
+            }));
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchSettings();
     }, []);
 
+    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setSettings({ ...settings, [name]: value });
+        setSettings((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSave = async () => {
-        if (!settings.storagePath) {
-            setError("Storage Path is required.");
-            return;
-        }
+    // Handle save settings
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setError(null);
+        setSuccess(null);
 
-        if (settings.maxFileSize <= 0) {
-            setError("Max File Size must be a positive number.");
+        if (!settings.storagePath) {
+            setError('Storage Path is required.');
             return;
         }
 
         try {
-            const response = await fetch("/api/settings", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
+            const response = await fetch('/api/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
                 body: JSON.stringify(settings),
             });
-            if (!response.ok) throw new Error("Failed to save settings.");
-            alert("Settings saved successfully!");
-            setError(null);
+
+            if (!response.ok) throw new Error('Failed to save settings.');
+
+            setSuccess('Settings saved successfully!');
         } catch (err) {
             setError(err.message);
         }
     };
 
-    if (isLoading) return <div>Loading...</div>;
-    if (error) return <div style={{ color: "red" }}>Error: {error}</div>;
+    if (isLoading) {
+        return <p>Loading...</p>;
+    }
 
     return (
         <div>
             <h1>Global Settings</h1>
-            <form>
+            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {success && <p style={{ color: 'green' }}>{success}</p>}
+
+            <form onSubmit={handleSave}>
                 <div>
                     <label>Storage Path:</label>
                     <input
@@ -77,52 +90,32 @@ const GlobalSettingsPage = () => {
                         onChange={handleChange}
                     />
                 </div>
+
                 <div>
                     <label>Image Type:</label>
-                    <select
+                    <input
+                        type="text"
                         name="imageType"
                         value={settings.imageType}
                         onChange={handleChange}
-                    >
-                        <option value="jpg">JPG</option>
-                        <option value="png">PNG</option>
-                    </select>
+                    />
                 </div>
+
                 <div>
-                    <label>Date Format:</label>
-                    <input
-                        type="text"
+                    <label>Date Format for Daily Folders:</label>
+                    <select
                         name="dateFormat"
                         value={settings.dateFormat}
                         onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Max File Size (MB):</label>
-                    <input
-                        type="number"
-                        name="maxFileSize"
-                        value={settings.maxFileSize}
-                        onChange={handleChange}
-                    />
-                </div>
-                <div>
-                    <label>Theme:</label>
-                    <select
-                        name="theme"
-                        value={settings.theme}
-                        onChange={handleChange}
                     >
-                        <option value="light">Light</option>
-                        <option value="dark">Dark</option>
+                        <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                        <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                        <option value="MM-DD-YYYY">MM-DD-YYYY</option>
                     </select>
                 </div>
-                <button type="button" onClick={handleSave}>
-                    Save Settings
-                </button>
+
+                <button type="submit">Save Settings</button>
             </form>
         </div>
     );
-};
-
-export default GlobalSettingsPage;
+}
