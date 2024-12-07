@@ -19,8 +19,8 @@ export default async function dbConnect() {
 
     if (!cached.promise) {
         cached.promise = mongoose.connect(MONGODB_URI, {
-            serverSelectionTimeoutMS: 30000, // 30 seconds
-            socketTimeoutMS: 45000,          // 45 seconds
+            serverSelectionTimeoutMS: 60000, // 30 seconds
+            socketTimeoutMS: 60000,          // 45 seconds
         });
     }
 

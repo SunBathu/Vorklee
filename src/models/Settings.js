@@ -9,4 +9,4 @@ const SettingsSchema = new mongoose.Schema({
 });
 
 // Explicitly specify the collection name
-export default mongoose.models.SettingsGlobal || mongoose.model("SettingsGlobal", SettingsSchema, "settings_global");
+export default mongoose.models.SettingsGlobal || mongoose.model("SettingsGlobal", SettingsSchema, "settingsglobal");
