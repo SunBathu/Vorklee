@@ -1,11 +1,31 @@
-import dbConnect from "@/utils/dbConnect";
-import SettingsGlobal from "@/models/Settings";
+import dbConnect from '@/utils/dbConnect';
+import Settings from '@/models/Settings';
 
+export default async function handler(req, res) {
+    try {
+        await dbConnect();
+
+        const settings = await Settings.findOne({});
+        if (!settings) {
+            const newSettings = await Settings.create({
+                storagePath: "C:\\storage\\path",
+                imageType: "jpg",
+                dateFormat: "dd.MM.yyyy",
+            });
+            return res.status(200).json(newSettings);
+        }
+
+        res.status(200).json(settings);
+    } catch (error) {
+        console.error('Error fetching settings:', error);
+        res.status(500).json({ message: 'Failed to fetch settings', error: error.message });
+    }
+}
 
 export async function GET() {
     try {
         await dbConnect();
-        const settings = await SettingsGlobal.findOne({});
+        const settings = await Settings.findOne({});
         return Response.json(settings || {});
     } catch (error) {
         console.error("Error fetching settings:", error);
@@ -20,12 +40,12 @@ export async function POST(req) {
     try {
         await dbConnect();
         const body = await req.json();
-        const updatedSettings = await SettingsGlobal.findOneAndUpdate(
+        const updatedSettings = await Settings.findOneAndUpdate(
             {},
             body,
             { upsert: true, new: true }
         );
-        return Response.json({ message: "SettingsGlobal updated successfully!", updatedSettings });
+        return Response.json({ message: "Settings updated successfully!", updatedSettings });
     } catch (error) {
         console.error("Error saving settings:", error);
         return new Response(
@@ -33,13 +53,4 @@ export async function POST(req) {
             { status: 500 }
         );
     }
-}
-
-const settings = await SettingsGlobal.findOne({});
-if (!settings) {
-    await Settings.create({
-        storagePath: "C:\\storage\\path",
-        imageType: "jpg",
-        dateFormat: "dd.MM.yyyy",
-    });
 }
