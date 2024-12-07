@@ -23,6 +23,8 @@ export default async function dbConnect() {
         cached.promise = mongoose.connect(MONGODB_URI, {
             serverSelectionTimeoutMS: 60000, // 60 seconds
             socketTimeoutMS: 60000,          // 60 seconds
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
         });
     }
 
