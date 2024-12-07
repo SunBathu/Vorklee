@@ -48,8 +48,16 @@ export default function GlobalSettingsPage() {
         setError(null);
         setSuccess(null);
 
-        if (!settings.storagePath) {
+        // Storage Path Validation: Must not be empty and must be a valid path format
+        if (!settings.storagePath.trim()) {
             setError('Storage Path is required.');
+            return;
+        }
+
+        // Image Type Validation: Allow only jpg, png, or gif
+        const allowedImageTypes = ['jpg', 'png', 'gif'];
+        if (!allowedImageTypes.includes(settings.imageType.toLowerCase())) {
+            setError('Invalid Image Type. Allowed types are: jpg, png, gif.');
             return;
         }
 
