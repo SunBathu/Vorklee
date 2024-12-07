@@ -3,39 +3,38 @@
 import { useEffect, useState } from "react";
 
 const GlobalSettingsPage = () => {
-    const [settings, setSettings] = useState(null);
-    const [error, setError] = useState(null);
+    const [settings, setSettings] = useState({
+        storagePath: "",
+        imageType: "jpg",
+        dateFormat: "dd.MM.yyyy",
+    });
 
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Fetch settings on the client side
     useEffect(() => {
         const fetchSettings = async () => {
             try {
                 const response = await fetch("/api/settings");
+
                 if (!response.ok) {
+                    const errorData = await response.text();
+                    console.error("API Error Response:", errorData);
                     throw new Error("Failed to fetch settings.");
                 }
+
                 const data = await response.json();
                 setSettings(data);
-            } catch (err) {
-                setError(err.message);
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchSettings();
     }, []);
-
-    if (error) return <div>Error: {error}</div>;
-    if (!settings) return <div>Loading...</div>;
-
-    return (
-        <div>
-            <h1>Global Settings</h1>
-            <p>Storage Path: {settings.storagePath}</p>
-            <p>Image Type: {settings.imageType}</p>
-            <p>Date Format: {settings.dateFormat}</p>
-        </div>
-    );
-};
-    
 
     const handleSave = async () => {
         try {
@@ -44,14 +43,13 @@ const GlobalSettingsPage = () => {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(settings),
             });
-    
+
             if (!response.ok) {
-                const errorData = await response.text(); // Log the error response
+                const errorData = await response.text();
                 console.error("API Error Response:", errorData);
-                alert(`Failed to save settings: ${errorData}`);
-                return;
+                throw new Error("Failed to save settings.");
             }
-    
+
             const result = await response.json();
             alert(result.message || "Settings saved successfully!");
         } catch (error) {
@@ -59,7 +57,9 @@ const GlobalSettingsPage = () => {
             alert("An error occurred while saving settings.");
         }
     };
-    
+
+    if (isLoading) return <div>Loading...</div>;
+    if (error) return <div>Error: {error}</div>;
 
     return (
         <div>
