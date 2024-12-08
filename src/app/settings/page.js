@@ -24,6 +24,7 @@ export default function SettingsPage() {
             setGlobalSettings({
                 storagePath: data.globalSettings?.storagePath || 'SysFile',
                 dateFormat: data.globalSettings?.dateFormat || 'DD-MM-YYYY',
+                whichFoldersToDeleteWhenStorageFull: data.globalSettings?.whichFoldersToDeleteWhenStorageFull || 'Delete the oldest folders among all users (Recommended)',
             });
             setPcSettingsList(data.pcSettings || []);
         } catch (err) {
@@ -106,8 +107,8 @@ export default function SettingsPage() {
                             name="whichFoldersToDeleteWhenStorageFull"
                             value={globalSettings.whichFoldersToDeleteWhenStorageFull}
                             onChange={handleGlobalChange}                        >
-                            <option value="Delete the oldest folders among all users (Recommended)">Delete-the-oldest-folders-among-all-users-(Recommended)</option>
-                            <option value="Delete the oldest folder for the current user'">Delete-the-oldest-folder-for-the-current-user</option>
+                            <option value="Delete-the-oldest-folders-among-all-users-(Recommended)">Delete the oldest folders among all users (Recommended)</option>
+                            <option value="Delete-the-oldest-folder-for-the-current-user">Delete the oldest folder for the current user</option>
                         </select>
                 </div>                                
                 <div className="pc-section">
