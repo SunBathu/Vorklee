@@ -157,16 +157,17 @@ export default function SettingsPage() {
                 <tr>
                     <th>Nick Name</th>
                     <th>File Type</th>
-                    <th>Video Length</th>
+                    <th>Video Length <br />  <br /> (If File Type is Video)</th>
                     <th>Capture Interval</th>
-                    <th>File Quality (%)</th>
+                    <th>File Quality (%) <br /> 10=Poor <br /> 50=Normal <br /> 100=High</th>
                     <th>Storage Used</th>
                     <th>Client Notification Interval</th>
                     <th>Last Uploaded Time</th>
                     <th>Capture Enabled</th>
                     <th>Delete...</th>
                 </tr>
-                <tr className="sub-heading">
+
+                {/* <tr className="sub-heading">
                     <td>(A name for that computer that you can easily remember)</td>
                     <td>(The type of file to be saved in your storage)</td>
                     <td>
@@ -179,7 +180,7 @@ export default function SettingsPage() {
                     <td>(Last captured time)</td>
                     <td>(Select to capture. Unselect to stop capture)</td>
                     <td>(Delete the client permenantly)</td>
-              </tr>
+              </tr> */}
               </thead>
               <tbody>
                 {pcSettingsList.map((pc, index) => (
@@ -310,7 +311,7 @@ export default function SettingsPage() {
      Sub-Heading Row Styling
      ---------------------------- */
   .sub-heading {
-    font-size: 10px;       /* Ensure a readable small font size */
+    font-size: 12px;       /* Ensure a readable small font size */
     color: #f0f0f0;        /* Light gray text for contrast */
     background-color: #3b5998;
     text-align: center;
@@ -319,6 +320,7 @@ export default function SettingsPage() {
   .sub-heading td {
     padding: 5px 10px;
     border-top: none;      /* Remove the top border */
+    
   }
 
   /* ----------------------------
@@ -362,33 +364,78 @@ export default function SettingsPage() {
     table-layout: fixed;       /* Ensure columns have fixed widths */
   }
 
+  /* ----------------------------
+   Table Cell Styling
+   ---------------------------- */
   th,
   td {
+    height: 50px;              /* Set a fixed height for all rows */
     border: 2px solid #ddd;
     padding: 10px;
     text-align: center;
     white-space: normal;       /* Allow text wrapping */
-    word-wrap: break-word;     /* Wrap long words */
+    word-wrap: break-word;     /* Ensure long words wrap */
+    overflow: hidden;          /* Hide overflow content */
+    text-overflow: ellipsis;   /* Add ellipsis for overflowing text */
   }
 
-  th {
+th {
+    padding: 1px 1px;      /* Reduce vertical padding to minimize space */
+    line-height: 1;       /* Adjust line height to minimize space between lines */
+    height: auto;           /* Let height adjust automatically based on content */
+    white-space: normal;    /* Allow text wrapping */
+    word-wrap: break-word;  /* Wrap long words */
+    text-align: center;     /* Keep text centered */
+    overflow: hidden;       /* Hide any overflowing text */
+    text-overflow: ellipsis;/* Add ellipsis for text overflow */
     background-color: #3b5998;
     color: white;
-  }
+}
 
-  /* ----------------------------
-     Column Widths for Table
-     ---------------------------- */
-  th:nth-child(1), td:nth-child(1) { width: 15%; }  /* Nick Name */
-  th:nth-child(2), td:nth-child(2) { width: 10%; }  /* File Type */
-  th:nth-child(3), td:nth-child(3) { width: 10%; }  /* Video Length */
-  th:nth-child(4), td:nth-child(4) { width: 10%; }  /* Capture Interval */
-  th:nth-child(5), td:nth-child(5) { width: 10%; }  /* File Quality */
-  th:nth-child(6), td:nth-child(6) { width: 10%; }  /* Storage Used */
-  th:nth-child(7), td:nth-child(7) { width: 10%; }  /* Client Notification Interval */
-  th:nth-child(8), td:nth-child(8) { width: auto; } /* Last Uploaded Time */
-  th:nth-child(9), td:nth-child(9) { width: 5%; }   /* Capture Enabled */
-  th:nth-child(10), td:nth-child(10) { width: 10%; } /* Delete Client */
+    /* ----------------------------
+    Tooltip Styling
+    ---------------------------- */
+    .tooltip {
+    position: relative;
+    cursor: pointer;
+    }
+
+    .tooltip::after {
+    content: attr(data-tooltip);       /* Get tooltip text from data-tooltip attribute */
+    position: absolute;
+    bottom: 100%;                      /* Position the tooltip above the element */
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    white-space: nowrap;
+    visibility: hidden;                /* Hidden by default */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+    z-index: 10;
+    font-size: 12px;
+    }
+
+    /* Show the tooltip on hover */
+    .tooltip:hover::after {
+    visibility: visible;
+    opacity: 1;
+    }
+
+    /* ----------------------------
+    Column Widths for Table
+    ---------------------------- */
+    th:nth-child(1), td:nth-child(1) { width: 15%; }  /* Nick Name */
+    th:nth-child(2), td:nth-child(2) { width: 10%; }  /* File Type */
+    th:nth-child(3), td:nth-child(3) { width: 8%; }   /* Video Length */
+    th:nth-child(4), td:nth-child(4) { width: 10%; }  /* Capture Interval */
+    th:nth-child(5), td:nth-child(5) { width: 12%; }  /* File Quality */
+    th:nth-child(6), td:nth-child(6) { width: 10%; }  /* Storage Used */
+    th:nth-child(7), td:nth-child(7) { width: 15%; }  /* Client Notification Interval */
+    th:nth-child(8), td:nth-child(8) { width: 15%; }  /* Last Uploaded Time */
+    th:nth-child(9), td:nth-child(9) { width: 5%; }   /* Capture Enabled */
 
   /* ----------------------------
      Save Button Styling
