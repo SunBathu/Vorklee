@@ -1,15 +1,16 @@
+// src/models/SettingsPCWise.js
 import mongoose from 'mongoose';
 
 const SettingsPCWiseSchema = new mongoose.Schema({
     nickName: { type: String, default: '' },
-    pcName: { type: String, required: true, unique: true },
-    fileType: { type: String, default: 'Image' }, // Image or Video
-    videoLength: { type: Number, default: 4 }, // Only applicable if fileType is 'mp4'
-    screenshotInterval: { type: Number, default: 60 }, // Interval in seconds
-    fileQuality: { type: Number, default: 50 }, // Quality percentage (0-100)
+    pcName: { type: String, required: true },
+    fileType: { type: String, default: 'image' }, // 'image' or 'video'
+    videoLength: { type: Number, default: 4 },    // Applicable if fileType is 'video'
+    screenshotInterval: { type: Number, default: 10 },
+    fileQuality: { type: Number, default: 80 },
     updatedAt: { type: Date, default: Date.now },
-    storageUsed: { type: Number, default: 100 }, // storage used in MB
+    storageUsed: { type: String, default: '0 MB' },
     captureEnabled: { type: Boolean, default: true },
-}, { collection: 'settingspcwise' }); // Collection name in MongoDB
+}, { collection: 'settingspcwise' });
 
 export default mongoose.models.SettingsPCWise || mongoose.model('SettingsPCWise', SettingsPCWiseSchema);

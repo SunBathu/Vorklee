@@ -1,47 +1,39 @@
+// src/app/api/settings/route.js
 import dbConnect from '@/utils/dbConnect';
 import SettingsGlobal from '@/models/SettingsGlobal';
 import SettingsPCWise from '@/models/SettingsPCWise';
 
-export default async function handler(req, res) {
+export async function GET() {
+    await dbConnect();
+
     try {
-        await dbConnect();
+        const globalSettings = await SettingsGlobal.findOne({});
+        const pcSettings = await SettingsPCWise.find({});
 
-        if (req.method === 'GET') {
-            // Fetch global settings
-            let globalSettings = await SettingsGlobal.findOne({});
-            if (!globalSettings) {
-                globalSettings = await SettingsGlobal.create({
-                    storagePath: 'SysFile',
-                    dateFormat: 'DD-MM-YYYY',
-                });
-            }
-
-            // Fetch PC-specific settings
-            const pcSettings = await SettingsPCWise.find({});
-
-            res.status(200).json({ globalSettings, pcSettings });
-        } else if (req.method === 'POST') {
-            const { globalSettings, pcSettingsList } = req.body;
-
-            // Update global settings
-            await SettingsGlobal.updateOne({}, globalSettings, { upsert: true });
-
-            // Update PC-specific settings
-            for (const pcSettings of pcSettingsList) {
-                await SettingsPCWise.updateOne(
-                    { hostName: pcSettings.hostName },
-                    pcSettings,
-                    { upsert: true }
-                );
-            }
-
-            res.status(200).json({ message: 'Settings saved successfully' });
-        } else {
-            res.setHeader('Allow', ['GET', 'POST']);
-            res.status(405).end(`Method ${req.method} Not Allowed`);
-        }
+        return Response.json({ globalSettings, pcSettings });
     } catch (error) {
-        console.error('Error:', error);
-        res.status(500).json({ message: 'Failed to process request', error: error.message });
+        return Response.json({ message: 'Failed to fetch settings', error: error.message }, { status: 500 });
+    }
+}
+
+export async function POST(req) {
+    await dbConnect();
+
+    try {
+        const { globalSettings, pcSettingsList } = await req.json();
+
+        await SettingsGlobal.updateOne({}, globalSettings, { upsert: true });
+
+        for (const pcSetting of pcSettingsList) {
+            await SettingsPCWise.updateOne(
+                { hostName: pcSetting.hostName },
+                pcSetting,
+                { upsert: true }
+            );
+        }
+
+        return Response.json({ message: 'Settings saved successfully' });
+    } catch (error) {
+        return Response.json({ message: 'Failed to save settings', error: error.message }, { status: 500 });
     }
 }

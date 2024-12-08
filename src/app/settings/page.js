@@ -12,6 +12,7 @@ export default function SettingsPage() {
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [message, setMessage] = useState(null);
 
     // Fetch settings on load
     const fetchSettings = async () => {
@@ -40,25 +41,27 @@ export default function SettingsPage() {
     const handleGlobalChange = (e) => {
         const { name, value } = e.target;
         setGlobalSettings((prev) => ({ ...prev, [name]: value }));
+        autoSave(globalSettings, pcSettingsList);
     };
 
     // Handle PC-specific settings change and auto-save
-    const handlePcChange = async (index, field, value) => {
+    const handlePcChange = (index, field, value) => {
         const updatedSettings = [...pcSettingsList];
         updatedSettings[index][field] = value;
         setPcSettingsList(updatedSettings);
+        autoSave(globalSettings, updatedSettings);
+    };
 
+    const autoSave = async (globalSettings, pcSettingsList) => {
         try {
             await fetch('/api/settings', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ globalSettings, pcSettingsList: updatedSettings }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ globalSettings, pcSettingsList }),
             });
-            setSuccess('Settings automatically saved.');
-        } catch (err) {
-            setError('Failed to auto-save settings.');
+            setMessage('Settings automatically saved.');
+        } catch {
+            setMessage('Failed to save settings.');
         }
     };
 
@@ -69,7 +72,7 @@ export default function SettingsPage() {
     return (
         <div className="container">
             <h1>Settings</h1>
-            {success && <p className="success">{success}</p>}
+            {message && <p className="success">{message}</p>}
             {error && <p className="error">{error}</p>}
 
             <form>
@@ -108,7 +111,7 @@ export default function SettingsPage() {
                                 <th>Video Length (s)</th>
                                 <th>Screenshot Interval (s)</th>
                                 <th>File Quality (%)</th>
-                                <th>updatedAt</th>
+                                <th>Last Uploaded Time</th>
                                 <th>Storage Used</th>
                                 <th>Capture Enabled</th>
                             </tr>
@@ -161,7 +164,7 @@ export default function SettingsPage() {
                                             onChange={(e) => handlePcChange(index, 'fileQuality', e.target.value)}
                                         />
                                     </td>
-                                    <td>{pc.lastUploadedTime}</td>
+                                    <td>{new Date(pc.lastUploadedTime).toLocaleString()}</td>
                                     <td>{pc.storageUsed}</td>
                                     <td>
                                         <input
