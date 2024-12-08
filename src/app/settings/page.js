@@ -3,6 +3,15 @@
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
+    
+  // ----------------------------
+  // Function to handle header clicks and set help content
+  // ----------------------------
+  const [helpContent, setHelpContent] = useState('');
+    const showHelp = (content) => {
+      setHelpContent(content);
+    };
+    
   // ----------------------------
   // State for Global Settings
   // ----------------------------
@@ -105,57 +114,69 @@ export default function SettingsPage() {
   return (
     <div className="container">
       <h1>Settings</h1>
+      
       {message && <p className="success">{message}</p>}
       {error && <p className="error">{error}</p>}
 
       {/* Global Settings Form */}
-      <form>
-        <div className="form-group-inline">
-          <label>Storage Path:</label>
-          <input
-            type="text"
-            name="storagePath"
-            value={globalSettings.storagePath}
-            onChange={handleGlobalChange}
-          />
+      <form>        
+        <div className="form-container">
+            <div className="form-fields">
+                <div className="form-group-inline">
+                    <label>Storage Path:</label>
+                    <input type="text" name="storagePath" 
+                    value={globalSettings.storagePath}
+                        onChange={handleGlobalChange}/>
+                </div>
+
+                <div className="form-group-inline">
+                <label>Date Format for Daily Folders:</label>
+                <select
+                    name="dateFormat"
+                    value={globalSettings.dateFormat}
+                    onChange={handleGlobalChange}
+                >
+                    <option value="DD-MM-YYYY">DD-MM-YYYY</option>
+                    <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                    <option value="MM-DD-YYYY">MM-DD-YYYY</option>
+                </select>
+                </div>
+
+                <div className="form-group-inline">
+                <label>Which folders to delete when storage full:</label>
+                <select
+                    name="whichFoldersToDeleteWhenStorageFull"
+                    value={globalSettings.whichFoldersToDeleteWhenStorageFull}
+                    onChange={handleGlobalChange}
+                >
+                    <option value="Delete-the-oldest-folders-among-all-users-(Recommended)">
+                    Delete the oldest folders among all users (Recommended)
+                    </option>
+                    <option value="Delete-the-oldest-folder-for-the-current-user">
+                    Delete the oldest folder for the current user
+                    </option>
+                </select>
+                </div>
+            </div>
+          
+            <div className="help-box">
+                {helpContent}
+            </div>
         </div>
 
-        <div className="form-group-inline">
-          <label>Date Format for Daily Folders:</label>
-          <select
-            name="dateFormat"
-            value={globalSettings.dateFormat}
-            onChange={handleGlobalChange}
-          >
-            <option value="DD-MM-YYYY">DD-MM-YYYY</option>
-            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
-            <option value="MM-DD-YYYY">MM-DD-YYYY</option>
-          </select>
-        </div>
 
-        <div className="form-group-inline">
-          <label>Which folders to delete when storage full:</label>
-          <select
-            name="whichFoldersToDeleteWhenStorageFull"
-            value={globalSettings.whichFoldersToDeleteWhenStorageFull}
-            onChange={handleGlobalChange}
-          >
-            <option value="Delete-the-oldest-folders-among-all-users-(Recommended)">
-              Delete the oldest folders among all users (Recommended)
-            </option>
-            <option value="Delete-the-oldest-folder-for-the-current-user">
-              Delete the oldest folder for the current user
-            </option>
-          </select>
-        </div>
 
         {/* PC-Specific Settings Table */}
         <div className="pc-section">
           <div style={{ overflowX: 'auto' }}>
-            <table>
+           {/* Table with Clickable Headers */}
+            <div className="table-container">
+            </div> <table>
               <thead>
                 <tr>
-                    <th>Nick Name</th>
+                <th onClick={() => showHelp('Enter a unique name for the PC.')}>
+                Nick Name
+              </th>
                     <th>File Type</th>
                     <th>Video Length <br />  <br /> (If File Type is Video)</th>
                     <th>Capture Interval</th>
@@ -282,10 +303,7 @@ export default function SettingsPage() {
 
 
     <style jsx>{`
-  /* ----------------------------
-    // Container Styling
-     ---------------------------- */
-  .container {
+     .container {
     position: relative;
     max-width: 1000px;
     margin: 20px auto;
@@ -295,64 +313,76 @@ export default function SettingsPage() {
     border-radius: 10px;
     font-family: Arial, sans-serif;
   }
+     /* ----------------------------
+   Form Container Styling
+   ---------------------------- */
+.form-container {
+  display: flex;
+  gap: 20px;                /* Space between form fields and help box */
+  align-items: flex-start;  /* Align items at the top */
+}
 
-  /* ----------------------------
+/* ----------------------------
+   Form Fields Container
+   ---------------------------- */
+.form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;                /* Space between each form group */
+  width: 65%;               /* Allocate 65% width for form fields */
+}
+/* ----------------------------
      Page Title Styling
      ---------------------------- */
-  h1 {
-    text-align: left;
-    font-size: 32px;
-    margin-bottom: 20px;
-    border-bottom: 2px solid white;
-    padding-bottom: 20px;
-  }
+    h1 {
+        text-align: left;
+        font-size: 32px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid white;
+        padding-bottom: 20px;
+    }
+/* ----------------------------
+   Form Group Inline Styling
+   ---------------------------- */
+.form-group-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-  /* ----------------------------
-     Sub-Heading Row Styling
-     ---------------------------- */
-  .sub-heading {
-    font-size: 12px;       /* Ensure a readable small font size */
-    color: #f0f0f0;        /* Light gray text for contrast */
-    background-color: #3b5998;
-    text-align: center;
-  }
+.form-group-inline label {
+  width: 40%;               /* Fixed width for labels */
+  font-weight: bold;
+}
 
-  .sub-heading td {
-    padding: 5px 10px;
-    border-top: none;      /* Remove the top border */
-    
-  }
+.form-group-inline input,
+.form-group-inline select {
+  width: 60%;               /* Fixed width for input/select boxes */
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  color: black;
+}
 
-  /* ----------------------------
-     Form Group for Inline Layout
-     ---------------------------- */
-  .form-group-inline {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .form-group-inline label {
-    width: 25%;            /* Label occupies 25% */
-    font-weight: bold;
-  }
-
-  .form-group-inline input,
-  .form-group-inline select {
-    width: 40%;            /* Input/select occupies 40% */
-    padding: 8px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    color: black;
-    white-space: normal;       /* Allow wrapping */
-    overflow: hidden;          /* Prevent text from spilling out */
-    text-overflow: ellipsis;   /* Add ellipsis for long text */
-    word-wrap: break-word;     /* Ensure long words wrap */
-    max-width: 100%;           /* Limit the width */
-  }
-
-  /* ----------------------------
+/* ----------------------------
+   Help Box Styling
+   ---------------------------- */
+.help-box {
+  width: 35%;               /* Allocate 35% width for the help box */
+  min-height: 150px;
+  padding: 10px;
+  background-color: #4267b2; /* Match the main blue color */
+  color: white;
+  border: 1px solid #365899;
+  border-radius: 4px;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-y: auto;         /* Vertical scroll for long text */
+  box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Mild black shadow */
+}
+ /* ----------------------------
      Table Styling
      ---------------------------- */
   table {
@@ -363,68 +393,35 @@ export default function SettingsPage() {
     color: black;
     table-layout: fixed;       /* Ensure columns have fixed widths */
   }
-
-  /* ----------------------------
+    /* ----------------------------
    Table Cell Styling
    ---------------------------- */
-  th,
-  td {
-    height: 50px;              /* Set a fixed height for all rows */
-    border: 2px solid #ddd;
-    padding: 10px;
-    text-align: center;
-    white-space: normal;       /* Allow text wrapping */
-    word-wrap: break-word;     /* Ensure long words wrap */
-    overflow: hidden;          /* Hide overflow content */
-    text-overflow: ellipsis;   /* Add ellipsis for overflowing text */
-  }
-
-th {
-    padding: 1px 1px;      /* Reduce vertical padding to minimize space */
-    line-height: 1;       /* Adjust line height to minimize space between lines */
-    height: auto;           /* Let height adjust automatically based on content */
-    white-space: normal;    /* Allow text wrapping */
-    word-wrap: break-word;  /* Wrap long words */
-    text-align: center;     /* Keep text centered */
-    overflow: hidden;       /* Hide any overflowing text */
-    text-overflow: ellipsis;/* Add ellipsis for text overflow */
-    background-color: #3b5998;
-    color: white;
-}
-
-    /* ----------------------------
-    Tooltip Styling
-    ---------------------------- */
-    .tooltip {
-    position: relative;
-    cursor: pointer;
+    th,
+    td {
+        height: 50px;              /* Set a fixed height for all rows */
+        border: 2px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        white-space: normal;       /* Allow text wrapping */
+        word-wrap: break-word;     /* Ensure long words wrap */
+        overflow: hidden;          /* Hide overflow content */
+        text-overflow: ellipsis;   /* Add ellipsis for overflowing text */
     }
 
-    .tooltip::after {
-    content: attr(data-tooltip);       /* Get tooltip text from data-tooltip attribute */
-    position: absolute;
-    bottom: 100%;                      /* Position the tooltip above the element */
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 6px 10px;
-    border-radius: 5px;
-    white-space: nowrap;
-    visibility: hidden;                /* Hidden by default */
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
-    z-index: 10;
-    font-size: 12px;
+    th {
+        padding: 1px 1px;      /* Reduce vertical padding to minimize space */
+        line-height: 1;       /* Adjust line height to minimize space between lines */
+        height: auto;           /* Let height adjust automatically based on content */
+        white-space: normal;    /* Allow text wrapping */
+        word-wrap: break-word;  /* Wrap long words */
+        text-align: center;     /* Keep text centered */
+        overflow: hidden;       /* Hide any overflowing text */
+        text-overflow: ellipsis;/* Add ellipsis for text overflow */
+        background-color: #3b5998;
+        color: white;
+        user-select: none;
     }
-
-    /* Show the tooltip on hover */
-    .tooltip:hover::after {
-    visibility: visible;
-    opacity: 1;
-    }
-
-    /* ----------------------------
+         /* ----------------------------
     Column Widths for Table
     ---------------------------- */
     th:nth-child(1), td:nth-child(1) { width: 15%; }  /* Nick Name */
@@ -465,8 +462,7 @@ th {
     cursor: default;
     box-shadow: none;
   }
-
-  /* ----------------------------
+    /* ----------------------------
      Responsive Table Container
      ---------------------------- */
   .table-container {
