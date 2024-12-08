@@ -26,7 +26,7 @@ export async function POST(req) {
 
         for (const pcSetting of pcSettingsList) {
             await SettingsPCWise.updateOne(
-                { hostName: pcSetting.hostName },
+                { pcName: pcSetting.pcName },
                 pcSetting,
                 { upsert: true }
             );

@@ -100,19 +100,28 @@ export default function SettingsPage() {
                         </select>
                     </div>
                 </div>
-
+                <div className="form-group-Deltype">
+                        <label>Which folders to delete when storage full:</label>
+                        <select
+                            name="whichFoldersToDeleteWhenStorageFull"
+                            value={globalSettings.whichFoldersToDeleteWhenStorageFull}
+                            onChange={handleGlobalChange}                        >
+                            <option value="Delete the oldest folders among all users (Recommended)">Delete-the-oldest-folders-among-all-users-(Recommended)</option>
+                            <option value="Delete the oldest folder for the current user'">Delete-the-oldest-folder-for-the-current-user</option>
+                        </select>
+                </div>                                
                 <div className="pc-section">
                     <table>
                         <thead>
                             <tr>
-                                <th>Nick Name</th>
-                                <th>PC Name</th>
+                                <th>Nick Name</th>                               
                                 <th>File Type</th>
-                                <th>Video Length (s)</th>
-                                <th>Screenshot Interval (s)</th>
+                                <th>Video Length (Seconds)</th>
+                                <th>Screenshot Interval (Seconds)</th>
                                 <th>File Quality (%)</th>
-                                <th>Last Uploaded Time</th>
                                 <th>Storage Used</th>
+                                <th>Client Notification Interval</th>
+                                <th>Last Uploaded Time</th>
                                 <th>Capture Enabled</th>
                             </tr>
                         </thead>
@@ -124,13 +133,6 @@ export default function SettingsPage() {
                                             type="text"
                                             value={pc.nickName}
                                             onChange={(e) => handlePcChange(index, 'nickName', e.target.value)}
-                                        />
-                                    </td>
-                                    <td>
-                                        <input
-                                            type="text"
-                                            value={pc.pcName}
-                                            onChange={(e) => handlePcChange(index, 'pcName', e.target.value)}
                                         />
                                     </td>
                                     <td>
@@ -153,8 +155,8 @@ export default function SettingsPage() {
                                     <td>
                                         <input
                                             type="number"
-                                            value={pc.screenshotInterval}
-                                            onChange={(e) => handlePcChange(index, 'screenshotInterval', e.target.value)}
+                                            value={pc.captureinterval}
+                                            onChange={(e) => handlePcChange(index, 'captureinterval', e.target.value)}
                                         />
                                     </td>
                                     <td>
@@ -163,8 +165,21 @@ export default function SettingsPage() {
                                             value={pc.fileQuality}
                                             onChange={(e) => handlePcChange(index, 'fileQuality', e.target.value)}
                                         />
+                                    </td>                                   
+                                    <td>
+                                        <select
+                                            value={pc.clientNotificationInterval}
+                                            onChange={(e) => handlePcChange(index, 'clientNotificationInterval', e.target.value)}                                        >
+                                            <option value="Do not show screenshot uploaded message to the client">NoUploadMsg</option>
+                                            <option value="Show daily once">DailyOnce</option>
+                                            <option value="Show Weekly once">WeeklyOnce</option>
+                                            <option value="Show Monthly once">MonthlyOnce</option>                                            
+                                            <option value="Show Quarterly once">QuarterlyOnce</option>                                            
+                                            <option value="Show Half Yearly once">HalfYearlyOnce</option>
+                                            <option value="Show Yearly once">YearlyOnce</option>
+                                        </select>
                                     </td>
-                                    <td>{new Date(pc.lastUploadedTime).toLocaleString()}</td>
+                                    <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
                                     <td>{pc.storageUsed}</td>
                                     <td>
                                         <input
