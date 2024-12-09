@@ -1,4 +1,6 @@
-// src/app/api/settings/route.js
+// Used for backend logic.
+// It is in the correct location: src/app/api/settings/route.js
+
 import dbConnect from '@/utils/dbConnect';
 import SysFileSettingsGlobal from '@/models/SysFileSettingsGlobal';
 import SysFileSettingsPCWise from '@/models/SysFileSettingsPCWise';
