@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useMessage } from '../context/MessageContext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function SettingsPage() {
+  const { message, setMessage, error, setError } = useMessage(); // Destructure message and error
+
   // -----------------------------
   // State for Global Settings
   // ----------------------------
@@ -21,12 +24,12 @@ export default function SettingsPage() {
   const [pcSettingsList, setPcSettingsList] = useState([]);
 
   // State for error and success messages
-  const [error, setError] = useState(null);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState(null);
   const [helpContent, setHelpContent] = useState(''); // Added state for help content
-  const showHelp = (content) => {setHelpContent(content);};
+  const showHelp = (content) => {
+    setHelpContent(content);
+  };
   // ----------------------------
   // Fetch Settings on Load
   // ----------------------------
@@ -488,7 +491,6 @@ export default function SettingsPage() {
           word-wrap: break-word;
           overflow-y: auto; /* Vertical scroll for long text */
           box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Mild black shadow */
-
         }
 
         .help-header {
