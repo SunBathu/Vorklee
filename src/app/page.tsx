@@ -1,14 +1,17 @@
-import Link from "next/link";
+// src\app\page.tsx
+import Sidebar from './components/Sidebar';
+import TopMenu from './components/TopMenu';
 
-export default function Home() {
-    return (
-        <div>
-            <h1>Welcome to SysFile Admin Dashboard</h1>
-            <ul>
-                <li><Link href="/settings">Global Settings</Link></li>
-                <li><Link href="/about">About</Link></li>
-                {/* Add more links here */}
-            </ul>
+export default function HomePage() {
+  return (
+    <div className="flex h-screen">
+      <Sidebar />
+      <div className="flex flex-col flex-grow">
+        <TopMenu />
+        <div className="p-4">
+          <h1>Dashboard</h1>
         </div>
-    );
+      </div>
+    </div>
+  );
 }

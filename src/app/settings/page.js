@@ -3,13 +3,6 @@
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-  // ----------------------------
-  // Function to handle header clicks and set help content
-  // ----------------------------
-  const [helpContent, setHelpContent] = useState('');
-  const showHelp = (content) => {
-    setHelpContent(content);
-  };
 
   // ----------------------------
   // State for Global Settings
@@ -31,7 +24,8 @@ export default function SettingsPage() {
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
-
+  const [helpContent, setHelpContent] = useState(''); // Added state for help content
+  
   // ----------------------------
   // Fetch Settings on Load
   // ----------------------------
