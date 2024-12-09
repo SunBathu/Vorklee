@@ -1,7 +1,7 @@
 // src/app/api/settings/route.js
 import dbConnect from '@/utils/dbConnect';
-import SettingsGlobal from '@/models/SettingsGlobal';
-import SettingsPCWise from '@/models/SettingsPCWise';
+import SysFileSettingsGlobal from '@/models/SysFileSettingsGlobal';
+import SysFileSettingsPCWise from '@/models/SysFileSettingsPCWise';
 
 export async function GET() {
     await dbConnect();
@@ -17,23 +17,28 @@ export async function GET() {
 }
 
 export async function POST(req) {
-    await dbConnect();
+  await dbConnect();
 
-    try {
-        const { globalSettings, pcSettingsList } = await req.json();
+  try {
+    const { globalSettings, pcSettingsList } = await req.json();
 
-        await SettingsGlobal.updateOne({}, globalSettings, { upsert: true });
+    // Update global settings
+    await SettingsGlobal.updateOne({}, globalSettings, { upsert: true });
 
-        for (const pcSetting of pcSettingsList) {
-            await SettingsPCWise.updateOne(
-                { pcName: pcSetting.pcName },
-                pcSetting,
-                { upsert: true }
-            );
-        }
+    // Update PC settings concurrently
+    await Promise.all(
+      pcSettingsList.map((pcSetting) =>
+        SettingsPCWise.updateOne({ pcName: pcSetting.pcName }, pcSetting, {
+          upsert: true,
+        }),
+      ),
+    );
 
-        return Response.json({ message: 'Settings saved successfully' });
-    } catch (error) {
-        return Response.json({ message: 'Failed to save settings', error: error.message }, { status: 500 });
-    }
+    return Response.json({ message: 'Settings saved successfully' });
+  } catch (error) {
+    return Response.json(
+      { message: 'Failed to save settings', error: error.message },
+      { status: 500 },
+    );
+  }
 }

@@ -2,7 +2,7 @@
 import mongoose from 'mongoose';
 
 const SettingsPCWiseSchema = new mongoose.Schema({
-    email: { type: String, required: true }, 
+    adminEmail: { type: String, required: true }, 
     adminId: { type: String, default: '' },    
     nickName: { type: String, default: 'PC' },   
     fileType: { type: String, default: 'Image' }, // 'image' or 'video'
@@ -20,6 +20,6 @@ const SettingsPCWiseSchema = new mongoose.Schema({
     ipAddress: { type: String, required: true },
     devAllowToRun: { type: Boolean, default: true },
     devInfo: { type: String, default: '' },
-}, { collection: 'settingspcwise' });
+}, { collection: 'sysFileSettingsPcwise' });
 
 export default mongoose.models.SettingsPCWise || mongoose.model('SettingsPCWise', SettingsPCWiseSchema);

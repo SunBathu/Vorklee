@@ -11,7 +11,7 @@ const SettingsGlobalSchema = new mongoose.Schema(
         'AmongAll: Delete the oldest folders among all users (Recommended)',
     }, //'Delete the oldest folder among all users'  || 'SameUser: Delete the oldest folder from the same user'
   },
-  { collection: 'settingsglobal' },
+  { collection: 'sysfileSettingsGlobal' },
 );
 
 export default mongoose.models.SettingsGlobal ||
