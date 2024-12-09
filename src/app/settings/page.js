@@ -178,8 +178,8 @@ export default function SettingsPage() {
               <thead>
                 <tr>
                   <th onClick={() => showHelp('The PC/User name, which you can easily remeber.')}>Nick Name</th>
-                  <th onClick={() => showHelp('You can choose the screenshot type to save to your storage.')}>File Type</th>
-                  <th onClick={() => showHelp('It is applicable if you select video as your file type. Small lengthy videos are recommended. For example: 5 (seconds)')}>Video Length</th>
+                  <th onClick={() => showHelp('You can specify the screenshot format, such as Image or Video depending on your requirements. Image is generally recommended.')}>File Type</th>
+                  <th onClick={() => showHelp('It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.')}>Video Length</th>
                   <th onClick={() => showHelp('The gap between one capture and the next. If you select 60, a screenshot will be captured every 60 seconds.')}>Capture Interval</th>
                   <th onClick={() => showHelp('Quality of the file to be captured.')}>File Quality</th>
                   <th onClick={() => showHelp('Storage space occupied in MB.')}>Storage Used</th>
@@ -371,7 +371,7 @@ export default function SettingsPage() {
         .help-box {
           width: 35%; /* Allocate 35% width for the help box */
           min-height: 150px;
-          padding: 10px;
+          padding: 5px 0px 0px 0px;
           background-color: #4267b2; /* Match the main blue color */
           color: white;
           border: 1px solid #365899;
@@ -396,11 +396,12 @@ export default function SettingsPage() {
           border-bottom: 1px solid black; /* Divider line under the header */
         }
 
-        /* ----------------------------
+    /* ----------------------------
    Help Content Styling
    ---------------------------- */
         .help-content {
           flex: 1; /* Take the remaining vertical space */
+          padding: 1px 10px 25px 25px;
           overflow-y: auto; /* Enable scrolling for long content */
         }
         /* ----------------------------
