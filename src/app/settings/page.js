@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 export default function SettingsPage() {
   // ----------------------------
@@ -91,6 +93,20 @@ export default function SettingsPage() {
       }
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleDelete = (nickName, index) => {
+    const userInput = prompt(
+      `Type the nickname "${nickName}" to confirm deletion:`,
+    );
+
+    if (userInput === nickName) {
+      const updatedSettings = pcSettingsList.filter((_, i) => i !== index);
+      setPcSettingsList(updatedSettings);
+      alert(`Client with nickname "${nickName}" has been deleted.`);
+    } else {
+      alert('Deletion cancelled or nickname did not match.');
     }
   };
 
@@ -251,7 +267,7 @@ export default function SettingsPage() {
                       )
                     }
                   >
-                    Capture Enabled
+                    Enabled
                   </th>
                   <th
                     onClick={() =>
@@ -262,7 +278,6 @@ export default function SettingsPage() {
                   >
                     Del
                   </th>
-                  
                 </tr>
               </thead>
               <tbody>
@@ -361,6 +376,13 @@ export default function SettingsPage() {
                         }
                       />
                     </td>
+                    <td>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        className="delete-icon"
+                        onClick={() => handleDelete(pc.nickName, index)}
+                      />
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -454,7 +476,7 @@ export default function SettingsPage() {
         }
         .help-box {
           width: 35%; /* Allocate 35% width for the help box */
-          min-height: 150px;
+          height: 250px;
           padding: 5px 0px 0px 0px;
           background-color: #4267b2; /* Match the main blue color */
           color: white;
@@ -466,8 +488,7 @@ export default function SettingsPage() {
           word-wrap: break-word;
           overflow-y: auto; /* Vertical scroll for long text */
           box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Mild black shadow */
-          display: flex;
-          flex-direction: column;
+
         }
 
         .help-header {
@@ -513,8 +534,8 @@ export default function SettingsPage() {
 
         th {
           padding: 1px 1px; /* Reduce vertical padding to minimize space */
-          line-height: 1; /* Adjust line height to minimize space between lines */
-          height: auto; /* Let height adjust automatically based on content */
+          line-height: 1.2; /* Adjust line height to minimize space between lines */
+          height: 70px; /* Let height adjust automatically based on content */
           white-space: normal; /* Allow text wrapping */
           word-wrap: break-word; /* Wrap long words */
           text-align: center; /* Keep text centered */
@@ -567,6 +588,17 @@ export default function SettingsPage() {
         td:nth-child(10) {
           width: 3%;
         } /* Del client */
+
+        .delete-icon {
+          fill: red; /* Set the SVG fill color to red */
+          cursor: pointer; /* Change cursor to pointer for click interaction */
+          font-size: 20px; /* Optional: Adjust icon size */
+          transition: fill 0.2s; /* Smooth transition for color change */
+        }
+
+        .delete-icon:hover {
+          fill: darkred; /* Change color to dark red on hover */
+        }
 
         /* ----------------------------
      Responsive Table Container
