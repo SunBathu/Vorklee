@@ -1,13 +1,36 @@
-// app\components\Sidebar.js
-export default function Sidebar() {
-    return (
-      <div className="w-60 bg-gray-800 text-white h-screen p-4">
-        <h2 className="text-lg font-bold mb-4">Vorklee</h2>
-        <ul>
-          <li><a href="/" className="block py-2">Dashboard</a></li>
-          <li><a href="/settings" className="block py-2">Settings</a></li>
-        </ul>
-      </div>
-    );
-  }
-  
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+
+const Sidebar = () => {
+  const [hoverSubMenu, setHoverSubMenu] = useState(false);
+
+  return (
+    <div className="sidebar">
+      <ul>
+        <li>
+          <Link href="/">Dashboard</Link>
+        </li>
+        <li
+          className="submenu-container"
+          onMouseEnter={() => setHoverSubMenu(true)}
+          onMouseLeave={() => setHoverSubMenu(false)}
+        >
+          <span className="submenu-button">Settings</span>
+          {hoverSubMenu && (
+            <ul className="submenu">
+              <li>
+                <Link href="/settings/global">Global Settings</Link>
+              </li>
+              <li>
+                <Link href="/settings/pc">PC-Specific Settings</Link>
+              </li>
+            </ul>
+          )}
+        </li>
+      </ul>
+    </div>
+  );
+};
+
+export default Sidebar;

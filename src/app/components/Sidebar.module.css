@@ -1,0 +1,57 @@
+.sidebar {
+  width: 250px;
+  height: 100vh;
+  background-color: #1e1e2e;
+  color: #ffffff;
+  padding: 20px;
+  font-family: Arial, sans-serif;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 10px 0;
+  position: relative; /* Ensure submenu is positioned relative to the parent */
+}
+
+.sidebar a,
+.submenu-button {
+  color: #ffffff;
+  text-decoration: none;
+  display: block;
+  padding: 10px;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+
+.sidebar a:hover,
+.submenu-button:hover {
+  background-color: #3b3b4f;
+}
+
+.submenu {
+  background-color: #2a2a3c;
+  padding-left: 10px;
+  position: absolute;
+  top: 100%; /* Position submenu below the parent */
+  left: 0;
+  width: 100%;
+  display: none; /* Initially hidden */
+  z-index: 1000; /* Ensure submenu is above other elements */
+}
+
+.submenu-container:hover .submenu {
+  display: block; /* Show submenu on hover */
+}
+
+.submenu li {
+  margin: 0;
+}
+
+.submenu a {
+  padding: 8px 10px;
+  font-size: 14px;
+}

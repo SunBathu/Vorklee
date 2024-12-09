@@ -19,3 +19,12 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+.layout {
+  display: flex;
+}
+
+.content {
+  flex: 1;
+  padding: 20px;
+}
