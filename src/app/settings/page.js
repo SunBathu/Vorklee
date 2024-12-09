@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 
 export default function SettingsPage() {
-
   // ----------------------------
   // State for Global Settings
   // ----------------------------
@@ -25,7 +24,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState(null);
   const [helpContent, setHelpContent] = useState(''); // Added state for help content
-  
+  const showHelp = (content) => {setHelpContent(content);};
   // ----------------------------
   // Fetch Settings on Load
   // ----------------------------
@@ -107,8 +106,18 @@ export default function SettingsPage() {
   // ----------------------------
   return (
     <div className="container">
-      <h1>Settings</h1>
-
+      <div className="header-container">
+        <h1 className="title">Settings</h1>
+        {/* Save Button in Top Right Corner Inside the Blue Frame */}
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={!isModified}
+          className={`save-button ${isModified ? 'enabled' : ''}`}
+        >
+          Save Settings
+        </button>
+      </div>
       {message && <p className="success">{message}</p>}
       {error && <p className="error">{error}</p>}
 
@@ -158,7 +167,7 @@ export default function SettingsPage() {
           </div>
 
           <div className="help-box">
-            <div className="help-header">Message</div>
+            <div className="help-header">Info</div>
             <div className="help-content">{helpContent}</div>
           </div>
         </div>
@@ -171,16 +180,89 @@ export default function SettingsPage() {
             <table>
               <thead>
                 <tr>
-                  <th onClick={() => showHelp('The PC/User name, which you can easily remeber.')}>Nick Name</th>
-                  <th onClick={() => showHelp('You can specify the screenshot format, such as Image or Video depending on your requirements. Image is generally recommended.')}>File Type</th>
-                  <th onClick={() => showHelp('It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.')}>Video Length</th>
-                  <th onClick={() => showHelp('The gap between one capture and the next. If you select 60, a screenshot will be captured every 60 seconds.')}>Capture Interval</th>
-                  <th onClick={() => showHelp('Quality of the file to be captured.')}>File Quality</th>
-                  <th onClick={() => showHelp('Storage space occupied in MB.')}>Storage Used</th>
-                  <th onClick={() => showHelp('Alert interval for your clients about captures.')}>Client Notification Interval</th>
-                  <th onClick={() => showHelp('Screenshot last captured time).')}>Last Uploaded Time</th>
-                  <th onClick={() => showHelp(<><span>Select to capture.</span><br /><span>Unselect to stop capture.</span></>)}>Capture Enabled</th>
-                  <th onClick={() => showHelp('Delete the client permanently. The client app will also be deleted automatically when that PC starts next. If you want to view the screenshots again, you will need to reinstall the client app on that PC.')}>Del</th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'The PC/User name, which you can easily remeber.',
+                      )
+                    }
+                  >
+                    Nick Name
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'You can specify the screenshot format, such as Image or Video depending on your requirements. Image is generally recommended.',
+                      )
+                    }
+                  >
+                    File Type
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.',
+                      )
+                    }
+                  >
+                    Video Length
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'The gap between one capture and the next. If you select 60, a screenshot will be captured every 60 seconds.',
+                      )
+                    }
+                  >
+                    Capture Interval
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp('Quality of the file to be captured.')
+                    }
+                  >
+                    File Quality
+                  </th>
+                  <th onClick={() => showHelp('Storage space occupied in MB.')}>
+                    Storage Used
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'Alert interval for your clients about captures.',
+                      )
+                    }
+                  >
+                    Client Notification Interval
+                  </th>
+                  <th
+                    onClick={() => showHelp('Screenshot last captured time).')}
+                  >
+                    Last Uploaded Time
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        <>
+                          <span>Select to capture.</span>
+                          <br />
+                          <span>Unselect to stop capture.</span>
+                        </>,
+                      )
+                    }
+                  >
+                    Capture Enabled
+                  </th>
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'Delete the client permanently. The client app will also be deleted automatically when that PC starts next. If you want to view the screenshots again, you will need to reinstall the client app on that PC.',
+                      )
+                    }
+                  >
+                    Del
+                  </th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -285,60 +367,72 @@ export default function SettingsPage() {
             </table>
           </div>
         </div>
-
-        {/* Save Button in Top Right Corner Inside the Blue Frame */}
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!isModified}
-          className={`save-button ${isModified ? 'enabled' : ''}`}
-        >
-          Save Settings
-        </button>
       </form>
 
       <style jsx>{`
         .container {
-          position: relative;
-          max-width: 1000px;
-          margin: 20px auto;
+          width: 100%;
+          height: 100%;
           padding: 20px;
           background-color: #4267b2;
           color: white;
           border-radius: 10px;
           font-family: Arial, sans-serif;
+          box-sizing: border-box;
         }
-        /* ----------------------------
-   Form Container Styling
-   ---------------------------- */
+
+        .header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          border-bottom: 6px solid white; /* Full-length divider line */
+          padding-bottom: 10px; /* Space below the line */
+        }
+
+        .title {
+          margin: 0;
+          font-size: 32px;
+        }
+
+        .save-button {
+          padding: 10px 20px;
+          background-color: #808080;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          cursor: default;
+          transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .save-button.enabled {
+          background-color: #008000;
+          cursor: pointer;
+          box-shadow: 2px 2px 5px black;
+        }
+
+        .save-button:disabled {
+          background-color: #ccc;
+          cursor: default;
+          box-shadow: none;
+        }
         .form-container {
           display: flex;
           gap: 20px; /* Space between form fields and help box */
           align-items: flex-start; /* Align items at the top */
         }
 
-        /* ----------------------------
-   Form Fields Container
-   ---------------------------- */
         .form-fields {
           display: flex;
           flex-direction: column;
           gap: 20px; /* Space between each form group */
           width: 65%; /* Allocate 65% width for form fields */
         }
-        /* ----------------------------
-     Page Title Styling
-     ---------------------------- */
-        h1 {
-          text-align: left;
+        .title {
+          margin: 0; /* Remove default margin */
           font-size: 32px;
-          margin-bottom: 20px;
-          border-bottom: 2px solid white;
-          padding-bottom: 20px;
         }
-        /* ----------------------------
-   Form Group Inline Styling
-   ---------------------------- */
+
         .form-group-inline {
           display: flex;
           align-items: center;
@@ -358,10 +452,6 @@ export default function SettingsPage() {
           border-radius: 4px;
           color: black;
         }
-
-        /* ----------------------------
-   Help Box Styling
-   ---------------------------- */
         .help-box {
           width: 35%; /* Allocate 35% width for the help box */
           min-height: 150px;
@@ -379,9 +469,7 @@ export default function SettingsPage() {
           display: flex;
           flex-direction: column;
         }
-        /* ----------------------------
-   Help Header Styling
-   ---------------------------- */
+
         .help-header {
           font-size: 16px;
           font-weight: bold;
@@ -390,20 +478,18 @@ export default function SettingsPage() {
           border-bottom: 1px solid black; /* Divider line under the header */
         }
 
-    /* ----------------------------
-   Help Content Styling
-   ---------------------------- */
         .help-content {
           flex: 1; /* Take the remaining vertical space */
           padding: 1px 10px 25px 25px;
           overflow-y: auto; /* Enable scrolling for long content */
         }
+
         /* ----------------------------
      Table Styling
      ---------------------------- */
         table {
           width: 100%;
-          min-width: 1000px;      /* Prevent table from shrinking too much */
+          min-width: 1000px; /* Prevent table from shrinking too much */
           border-collapse: collapse;
           margin-top: 20px;
           background-color: white;
@@ -477,39 +563,11 @@ export default function SettingsPage() {
         td:nth-child(9) {
           width: 5%;
         } /* Capture Enabled */
-         th:nth-child(10),
+        th:nth-child(10),
         td:nth-child(10) {
           width: 3%;
         } /* Del client */
 
-        /* ----------------------------
-     Save Button Styling
-     ---------------------------- */
-        .save-button {
-          position: absolute;
-          top: 20px;
-          right: 20px;
-          padding: 10px 20px;
-          background-color: #808080; /* Ash color when disabled */
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: default;
-          box-shadow: none;
-          transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        .save-button.enabled {
-          background-color: #008000; /* Green when enabled */
-          cursor: pointer;
-          box-shadow: 2px 2px 5px black;
-        }
-
-        .save-button:disabled {
-          background-color: #ccc;
-          cursor: default;
-          box-shadow: none;
-        }
         /* ----------------------------
      Responsive Table Container
      ---------------------------- */
@@ -517,9 +575,9 @@ export default function SettingsPage() {
           width: 100%;
           overflow-x: auto; /* Enable horizontal scrolling on small screens */
           margin-top: 20px;
-       
         }
       `}</style>
     </div>
   );
 }
+       
