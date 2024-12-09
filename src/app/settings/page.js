@@ -7,7 +7,7 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 export default function SettingsPage() {
   // -----------------------------
   // State for Global Settings
-  // ----------------------------
+  // -----------------------------
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
