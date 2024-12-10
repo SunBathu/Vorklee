@@ -1,13 +1,25 @@
-// app\components\Sidebar.js
+// src/components/Sidebar.tsx
+
+import Link from 'next/link';
+
 export default function Sidebar() {
-    return (
-      <div className="w-60 bg-gray-800 text-white h-screen p-4">
-        <h2 className="text-lg font-bold mb-4">Vorklee</h2>
-        <ul>
-          <li><a href="/" className="block py-2">Dashboard</a></li>
-          <li><a href="/settings" className="block py-2">Settings</a></li>
-        </ul>
-      </div>
-    );
-  }
-  
+  return (
+    <div className="w-64 h-screen bg-gray-800 text-white fixed top-0 left-0">
+      <h2 className="text-2xl font-bold p-4">Vorklee</h2>
+      <nav className="flex flex-col p-4 space-y-2">
+        <Link href="/" className="hover:bg-gray-700 p-2 rounded">
+          Home
+        </Link>
+        <Link href="/dashboard" className="hover:bg-gray-700 p-2 rounded">
+          Dashboard
+        </Link>
+        <Link href="/purchases" className="hover:bg-gray-700 p-2 rounded">
+          Purchases
+        </Link>
+        <Link href="/settings" className="hover:bg-gray-700 p-2 rounded">
+          Settings
+        </Link>
+      </nav>
+    </div>
+  );
+}
