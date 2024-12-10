@@ -4,7 +4,6 @@ import { SessionProvider } from 'next-auth/react';
 import { ReactNode } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopMessageBar from '@/components/TopMessageBar';
-
 import './globals.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {
