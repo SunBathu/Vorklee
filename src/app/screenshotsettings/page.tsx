@@ -1,40 +1,56 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
+type GlobalSettings = {
+  storagePath: string;
+  dateFormat: string;
+  whichFoldersToDeleteWhenStorageFull: string;
+};
+
+type PcSetting = {
+  nickName: string;
+  fileType: string;
+  videoLength?: number;
+  captureInterval: number;
+  fileQuality: number;
+  storageUsed: string;
+  clientNotificationInterval: string;
+  lastCapturedTime: string;
+  captureEnabled: boolean;
+};
+
 export default function SettingsPage() {
-  // -----------------------------
   // State for Global Settings
-  // -----------------------------
-  const [globalSettings, setGlobalSettings] = useState({
+  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
     whichFoldersToDeleteWhenStorageFull:
       'AmongAll: Delete the oldest folders among all users (Recommended)',
   });
 
-  // ----------------------------
   // State for PC-Specific Settings
-  // ----------------------------
-  const [pcSettingsList, setPcSettingsList] = useState([]);
+  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
 
   // State for error and success messages
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState(null);
-  const [helpContent, setHelpContent] = useState(''); // Added state for help content
-  const showHelp = (content) => {setHelpContent(content);};
-  // ----------------------------
+  const [message, setMessage] = useState<string | null>(null);
+  const [helpContent, setHelpContent] = useState<string>('');
+
+  const showHelp = (content: string) => {
+    setHelpContent(content);
+  };
+
   // Fetch Settings on Load
-  // ----------------------------
   useEffect(() => {
     const fetchSettings = async () => {
       try {
-        const response = await fetch('/api/settings');
-        if (!response.ok) throw new Error('Failed to fetch settings.');
+        const response = await fetch('/api/screenshotsettings');
+        if (!response.ok) throw new Error('Failed to fetch screenshot settings.');
 
         const data = await response.json();
         setGlobalSettings({
@@ -45,7 +61,7 @@ export default function SettingsPage() {
             'AmongAll: Delete the oldest folders among all users (Recommended)',
         });
         setPcSettingsList(data.pcSettings || []);
-      } catch (err) {
+      } catch (err: any) {
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -55,28 +71,31 @@ export default function SettingsPage() {
     fetchSettings();
   }, []);
 
-  // ----------------------------
   // Handle Global Settings Change
-  // ----------------------------
-  const handleGlobalChange = (e) => {
+  const handleGlobalChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
     const { name, value } = e.target;
     setGlobalSettings((prev) => ({ ...prev, [name]: value }));
     setIsModified(true);
   };
 
-  // ----------------------------
   // Handle PC-Specific Settings Change
-  // ----------------------------
-  const handlePcChange = (index, field, value) => {
-    const updatedSettings = [...pcSettingsList];
-    updatedSettings[index][field] = value;
-    setPcSettingsList(updatedSettings);
-    setIsModified(true);
+const handlePcChange = (
+  index: number,
+  field: keyof PcSetting,
+  value: string | number | boolean,
+) => {
+  const updatedSettings = [...pcSettingsList];
+  updatedSettings[index] = {
+    ...updatedSettings[index],
+    [field]: value,
   };
+  setPcSettingsList(updatedSettings);
+  setIsModified(true);
+};
 
-  // ----------------------------
   // Save Settings to the Server
-  // ----------------------------
   const handleSave = async () => {
     try {
       const response = await fetch('/api/settings', {
@@ -91,12 +110,12 @@ export default function SettingsPage() {
       } else {
         throw new Error('Failed to save settings.');
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(err.message);
     }
   };
 
-  const handleDelete = (nickName, index) => {
+  const handleDelete = (nickName: string, index: number) => {
     const userInput = prompt(
       `Type the nickname "${nickName}" to confirm deletion:`,
     );
@@ -110,21 +129,16 @@ export default function SettingsPage() {
     }
   };
 
-  // ----------------------------
   // Render Loading State
-  // ----------------------------
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
-  // ----------------------------
   // Render Settings Page
-  // ----------------------------
   return (
     <div className="container">
       <div className="header-container">
         <h1 className="title">Settings</h1>
-        {/* Save Button in Top Right Corner Inside the Blue Frame */}
         <button
           type="button"
           onClick={handleSave}
@@ -259,11 +273,7 @@ export default function SettingsPage() {
                   <th
                     onClick={() =>
                       showHelp(
-                        <>
-                          <span>Select to capture.</span>
-                          <br />
-                          <span>Unselect to stop capture.</span>
-                        </>,
+                          'Select to capture. Unselect to stop capture.',
                       )
                     }
                   >
@@ -488,7 +498,6 @@ export default function SettingsPage() {
           word-wrap: break-word;
           overflow-y: auto; /* Vertical scroll for long text */
           box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2); /* Mild black shadow */
-
         }
 
         .help-header {

@@ -1,12 +1,10 @@
 import Image from 'next/image';
 import Link from 'next/link';
-import Navbar from '@/components/Navbar';
-import { metadata } from './metadata';
 
 export default function Home() {
   return (
     <div>
-      <Navbar />
+      
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <h1 className="text-4xl font-bold mb-6">Welcome to Vorklee</h1>
         <p className="text-lg mb-4">

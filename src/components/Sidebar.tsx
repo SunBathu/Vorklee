@@ -13,11 +13,15 @@ export default function Sidebar() {
         <Link href="/dashboard" className="hover:bg-gray-700 p-2 rounded">
           Dashboard
         </Link>
+        <Link
+          href="/screenshotsettings" className="hover:bg-gray-700 p-2 rounded">
+          Screenshot Settings
+        </Link>
+        <Link href="/products" className="hover:bg-gray-700 p-2 rounded">
+          Products
+        </Link>
         <Link href="/purchases" className="hover:bg-gray-700 p-2 rounded">
           Purchases
-        </Link>
-        <Link href="/settings" className="hover:bg-gray-700 p-2 rounded">
-          Settings
         </Link>
       </nav>
     </div>

@@ -1,3 +1,7 @@
+// src/app/dashboard/page.tsx
+
+'use client';
+
 import { useSession, signIn } from 'next-auth/react';
 
 export default function Dashboard() {
@@ -9,5 +13,5 @@ export default function Dashboard() {
     return <p>Redirecting...</p>;
   }
 
-  return <div>Welcome, {session.user.name}</div>;
+  return <div>Welcome, {session.user?.name}</div>;
 }

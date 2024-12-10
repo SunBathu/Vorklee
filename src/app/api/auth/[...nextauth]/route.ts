@@ -4,8 +4,8 @@ import GoogleProvider from 'next-auth/providers/google';
 const handler = NextAuth({
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      clientId: process.env.GOOGLE_CLIENT_ID || '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || '',
     }),
   ],
   callbacks: {
@@ -14,9 +14,10 @@ const handler = NextAuth({
       return session;
     },
     async jwt({ token, account, profile }) {
-      if (account && profile) {
-        token.picture = profile.picture;
+      if (account && profile && (profile as { picture?: string }).picture) {
+        token.picture = (profile as { picture: string }).picture;
       }
+
       return token;
     },
   },
