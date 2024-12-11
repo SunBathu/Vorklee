@@ -6,6 +6,9 @@ export async function GET() {
   try {
     await dbConnect();
     const settings = await DashboardSettings.findOne();
+    if (!settings) {
+      return NextResponse.json({ error: 'No settings found' }, { status: 404 });
+    }
     return NextResponse.json(settings);
   } catch (error) {
     return NextResponse.json(

@@ -3,8 +3,6 @@
 import { useSession, signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Chart } from 'react-google-charts';
-import Link from 'next/link';
 
 interface Settings {
   storageUsed: number;
@@ -29,9 +27,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch('/api/dashboardSettings', {
-          method: 'GET',
-        });
+        const res = await fetch('/api/dashboardSettings', { method: 'GET' });
         if (!res.ok) throw new Error('Failed to fetch settings');
         const data: Settings = await res.json();
         setSettings(data);
@@ -46,7 +42,6 @@ export default function Dashboard() {
   }, [session]);
 
   if (status === 'loading' || !settings) return <p>Loading...</p>;
-
   if (error) return <p className="text-red-500">{error}</p>;
 
   return (

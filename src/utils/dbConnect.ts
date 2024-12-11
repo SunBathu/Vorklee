@@ -27,16 +27,14 @@ export default async function dbConnect(): Promise<Connection> {
     return cached.conn;
   }
 
-if (!cached.promise) {
-  cached.promise = mongoose
-    .connect(MONGODB_URI as string)
-    .then((mongooseInstance) => {
-      console.log('Database connected successfully');
-      return mongooseInstance.connection;
-    });
-}
-
-
+  if (!cached.promise) {
+    cached.promise = mongoose
+      .connect(MONGODB_URI as string)
+      .then((mongooseInstance) => {
+        console.log('Database connected successfully');
+        return mongooseInstance.connection;
+      });
+  }
 
   try {
     cached.conn = await cached.promise;
