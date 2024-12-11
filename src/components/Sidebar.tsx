@@ -1,12 +1,14 @@
 'use client';
 
-import { useSession, signIn } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useState } from 'react';
 import ProfileHeader from '@/components/ProfileHeader';
 
 export default function Sidebar() {
   const { data: session } = useSession();
+  const [showLogout, setShowLogout] = useState(false);
 
   const handleProtectedClick = (e: React.MouseEvent, path: string) => {
     if (!session) {
@@ -81,8 +83,33 @@ export default function Sidebar() {
       </nav>
 
       {/* Bottom Section with User Profile */}
-      <div className="p-4 bg-gray-800">
-        <ProfileHeader />
+      <div
+        className="p-4 bg-gray-800 relative"
+        onMouseEnter={() => setShowLogout(true)}
+        onMouseLeave={() => setShowLogout(false)}
+      >
+        {session ? (
+          <div className="flex items-center space-x-4">
+            <Image
+              src={session.user?.image || '/images/defaultProfile.png'}
+              alt="Profile"
+              width={40}
+              height={40}
+              className="rounded-full cursor-pointer"
+            />
+            <span className="cursor-pointer">{session.user?.email}</span>
+            {showLogout && (
+              <button
+                onClick={() => signOut()}
+                className="absolute bottom-12 left-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+              >
+                Logout
+              </button>
+            )}
+          </div>
+        ) : (
+          <ProfileHeader />
+        )}
       </div>
     </div>
   );
