@@ -34,7 +34,7 @@ export default function ProductsPage() {
           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             {renderPlanCard('Basic Plan', 'basic', '$2', '$4', '$2')}
             {renderPlanCard('Standard Plan', 'standard', '$4', '$8', '$4')}
-            {renderPlanCard('Premiem Plan', 'premiem', '$6', '$12', '$6')}
+            {renderPlanCard('Premium Plan', 'premium', '$6', '$12', '$6')}
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@ export default function ProductsPage() {
           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             {renderPlanCard('Basic Plan', 'basic', '$10', '$20', '$10')}
             {renderPlanCard('Standard Plan', 'standard', '$20', '$40', '$20')}
-            {renderPlanCard('Premiem Plan', 'premiem', '$30', '$60', '$30')}
+            {renderPlanCard('Premium Plan', 'premium', '$30', '$60', '$30')}
           </div>
         </div>
       </div>
@@ -72,22 +72,23 @@ export default function ProductsPage() {
 
 function renderPlanCard(
   title: string,
-  planType: string,
+  planType: 'basic' | 'standard' | 'premium',
   price: string,
   oldPrice: string,
   newPrice: string,
 ) {
-  const gradientColors = {
-    basic: 'from-purple-500 to-purple-300',
-    standard: 'from-blue-500 to-blue-300',
-    premiem: 'from-pink-500 to-pink-300',
-  };
-
+const gradientColors = {
+  basic: 'from-purple-500 to-purple-300',
+  standard: 'from-blue-500 to-blue-300',
+  premium: 'from-pink-500 to-pink-300',
+};
+ 
+         
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden text-center flex flex-col relative">
       {/* 50% Off Badge */}
       <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-sm font-bold rounded-br-lg z-10">
-        50% Off. Limited Period Offer
+        50% Off. Limited Period Offer!
       </div>
 
       {/* Gradient Header */}
