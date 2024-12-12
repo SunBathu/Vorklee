@@ -24,13 +24,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleGoToPayment = (
-    planType: 'basic' | 'standard' | 'premium' | 'free',
-  ) => {
+  const handleGoToPayment = (planType: string, subPlan: string) => {
     if (!session) {
       signIn('google');
     } else {
-      router.push(`/payment?plan=${planType}`);
+      router.push(`/payment?plan=${planType}&subPlan=${subPlan}`);
     }
   };
 
@@ -194,9 +192,7 @@ function renderPlanCard(
   priceAppCaptureCompanyOld: string,
   priceAppCaptureCompanyNew: string,
   features: string[],
-  handleGoToPayment: (
-    planType: 'basic' | 'standard' | 'premium' | 'free',
-  ) => void,
+  handleGoToPayment: (planType: string, subPlan: string) => void,
 ) {
   const gradientColors = {
     basic: 'from-purple-500 to-purple-300',
@@ -220,9 +216,9 @@ function renderPlanCard(
 
       <div className="relative mt-4 mb-6">
         <div
-          className={`w-24 h-24 bg-gradient-to-r ${gradientColors[planType]} rounded-full flex items-center justify-center drop-shadow-2xl mx-auto`}
+          className={`w-24 h-24 rounded-full flex items-center justify-center drop-shadow-2xl mx-auto bg-gradient-to-r ${gradientColors[planType]} border-4 border-white shadow-lg`}
         >
-          <p className="text-4xl font-bold text-gray-800">
+          <p className="text-4xl font-extrabold text-white drop-shadow-md">
             {priceAppCaptureDisplay}
           </p>
         </div>
@@ -236,29 +232,34 @@ function renderPlanCard(
         </ul>
         <div className="flex flex-col space-y-2">
           <button
-            onClick={() => handleGoToPayment('free')}
-            className="bg-gray-500 text-white py-2 rounded-full hover:bg-gray-600 transition"
+            onClick={() => handleGoToPayment(planType, 'Free Trial')}
+            className="bg-gradient-to-r from-gray-500 to-gray-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
           >
             Free Trial $0
           </button>
 
           <button
-            onClick={() => handleGoToPayment(planType)}
-            className="bg-green-500 text-white py-2 rounded-full hover:bg-green-600 transition"
+            onClick={() => handleGoToPayment(planType, 'Individual')}
+            className="bg-gradient-to-r from-green-500 to-green-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
           >
             Buy for - Individual{' '}
-            <span className="line-through mr-2">
+            <span className="line-through mr-2 text-gray-300">
               {priceAppCaptureIndividualOld}
-            </span>{' '}
-            {priceAppCaptureIndividualNew}
+            </span>
+            <span className="font-extrabold">
+              {priceAppCaptureIndividualNew}
+            </span>
           </button>
 
-          <button className="bg-blue-500 text-white py-2 rounded-full hover:bg-blue-600 transition">
+          <button
+            onClick={() => handleGoToPayment(planType, 'Company')}
+            className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
+          >
             Buy for - Company{' '}
-            <span className="line-through mr-2">
+            <span className="line-through mr-2 text-gray-300">
               {priceAppCaptureCompanyOld}
-            </span>{' '}
-            {priceAppCaptureCompanyNew}
+            </span>
+            <span className="font-extrabold">{priceAppCaptureCompanyNew}</span>
           </button>
         </div>
         <p className="text-gray-500 mt-6 text-sm">
