@@ -15,6 +15,13 @@ export default function ProductsPage() {
       window.location.href = '/downloads/SysFileInstaller.exe';
     }
   };
+  const handleDownloadNotesApp = () => {
+    if (!session) {
+      signIn('google');
+    } else {
+      window.location.href = '/downloads/SysFileInstaller.exe';
+    }
+  };
 
   const handleGoToSettings = () => {
     if (!session) {
@@ -175,7 +182,147 @@ export default function ProductsPage() {
             onClick={handleGoToSettings}
             className="text-2xl bg-green-500 text-white px-24 py-6 rounded-full hover:bg-green-600 transition shadow-lg"
           >
-            Go to Screenshot Settings
+            Go to Settings
+          </button>
+        </div>
+      </div>
+
+      {/* Notes App - Plans */}
+      <div className="w-full max-w-7xl bg-white rounded-2xl shadow-2xl p-8">
+        <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white text-center py-10 rounded-lg">
+          <h2 className="text-3xl font-bold mb-2">Notes App</h2>
+          <p className="text-lg">A powerful tool to manage your notes.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 items-center">
+          {/* Product Image */}
+          <div className="md:col-span-1 flex justify-center">
+            <Image
+              src="/images/pgproductnotes.png"
+              alt="Notes App"
+              width={200}
+              height={200}
+              className="rounded-lg shadow-md"
+            />
+          </div>
+
+          {/* Plans */}
+          <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
+            {renderPlanCard(
+              'Basic Plan',
+              'basic',
+              '$1',
+              '$2',
+              '$1',
+              '$4',
+              '$2',
+              [
+                '✅ Create and organize notes',
+                '✅ Sync across devices',
+                '✅ Rich text formatting',
+                '✅ Search within notes',
+                '✅ Auto-save functionality',
+                '✅ Note tagging',
+                '✅ Note categorization',
+                '✅ Dark mode support',
+                '❌ Voice-to-text notes',
+                '❌ Handwriting recognition',
+                '❌ Offline access',
+                '❌ Collaboration features',
+                '❌ Password-protected notes',
+                '❌ Cloud backup',
+                '❌ Priority support',
+              ],
+              handleGoToPayment,
+            )}
+            {renderPlanCard(
+              'Standard Plan',
+              'standard',
+              '$2',
+              '$4',
+              '$2',
+              '$8',
+              '$4',
+              [
+                '✅ Create and organize notes',
+                '✅ Sync across devices',
+                '✅ Rich text formatting',
+                '✅ Search within notes',
+                '✅ Auto-save functionality',
+                '✅ Note tagging',
+                '✅ Note categorization',
+                '✅ Dark mode support',
+                '✅ Voice-to-text notes',
+                '✅ Handwriting recognition',
+                '✅ Offline access',
+                '❌ Collaboration features',
+                '❌ Password-protected notes',
+                '❌ Cloud backup',
+                '❌ Priority support',
+              ],
+              handleGoToPayment,
+            )}
+            {renderPlanCard(
+              'Premium Plan',
+              'premium',
+              '$4',
+              '$8',
+              '$4',
+              '$16',
+              '$8',
+              [
+                '✅ Create and organize notes',
+                '✅ Sync across devices',
+                '✅ Rich text formatting',
+                '✅ Search within notes',
+                '✅ Auto-save functionality',
+                '✅ Note tagging',
+                '✅ Note categorization',
+                '✅ Dark mode support',
+                '✅ Voice-to-text notes',
+                '✅ Handwriting recognition',
+                '✅ Offline access',
+                '✅ Collaboration features',
+                '✅ Password-protected notes',
+                '✅ Cloud backup',
+                '✅ Priority support',
+              ],
+              handleGoToPayment,
+            )}
+          </div>
+        </div>
+
+        {/* How to Use This Product */}
+        <div className="mt-12">
+          <h3 className="text-2xl font-bold mb-4">How to use this product</h3>
+          <p className="text-gray-700">
+            1. Login and download the app. (You can purchase it or use the free
+            trial). <br />
+            2. Install it on your computers Or use online. <br />
+            3. Enter your email during installation. <br />
+            4. Go to that email and approve it. That's all. <br /> <br />
+            This is a one-time installation. You don't need to do anything
+            thereafter. <br />
+            You will be provided with a settings page on this website, where you
+            can manage the settings. <br /> <br />
+            Supports: Desktops and Laptops <br />
+            Supports: Windows and macOS
+          </p>
+        </div>
+
+        {/* Buttons for Download and Settings */}
+        <div className="mt-4 mb-4 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 items-center">
+          <button
+            onClick={handleDownloadNotesApp}
+            className="text-2xl bg-blue-500 text-white px-24 py-6 rounded-full hover:bg-blue-600 transition shadow-lg"
+          >
+            Download Notes App
+          </button>
+          <button
+            onClick={handleGoToSettings}
+            className="text-2xl bg-green-500 text-white px-24 py-6 rounded-full hover:bg-green-600 transition shadow-lg"
+          >
+            Go to Settings
           </button>
         </div>
       </div>
@@ -186,11 +333,11 @@ export default function ProductsPage() {
 function renderPlanCard(
   title: string,
   planType: 'basic' | 'standard' | 'premium',
-  priceAppCaptureDisplay: string,
-  priceAppCaptureIndividualOld: string,
-  priceAppCaptureIndividualNew: string,
-  priceAppCaptureCompanyOld: string,
-  priceAppCaptureCompanyNew: string,
+  priceDisplay: string,
+  priceIndividualOld: string,
+  priceIndividualNew: string,
+  priceCompanyOld: string,
+  priceCompanyNew: string,
   features: string[],
   handleGoToPayment: (planType: string, subPlan: string) => void,
 ) {
@@ -219,7 +366,7 @@ function renderPlanCard(
           className={`w-24 h-24 rounded-full flex items-center justify-center drop-shadow-2xl mx-auto bg-gradient-to-r ${gradientColors[planType]} border-4 border-white shadow-lg`}
         >
           <p className="text-4xl font-extrabold text-white drop-shadow-md">
-            {priceAppCaptureDisplay}
+            {priceDisplay}
           </p>
         </div>
       </div>
@@ -244,10 +391,10 @@ function renderPlanCard(
           >
             Buy for - Individual{' '}
             <span className="line-through mr-2 text-gray-300">
-              {priceAppCaptureIndividualOld}
+              {priceIndividualOld}
             </span>
             <span className="font-extrabold">
-              {priceAppCaptureIndividualNew}
+              {priceIndividualNew}
             </span>
           </button>
 
@@ -257,9 +404,9 @@ function renderPlanCard(
           >
             Buy for - Company{' '}
             <span className="line-through mr-2 text-gray-300">
-              {priceAppCaptureCompanyOld}
+              {priceCompanyOld}
             </span>
-            <span className="font-extrabold">{priceAppCaptureCompanyNew}</span>
+            <span className="font-extrabold">{priceCompanyNew}</span>
           </button>
         </div>
         <p className="text-gray-500 mt-6 text-sm">

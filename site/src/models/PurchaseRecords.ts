@@ -9,6 +9,7 @@ export interface PurchaseRecord extends Document {
   productName: string;
   productVersion: string;
   planName: string;
+  subPlanName: string;
   quantity: number;
   canUseInThisManyPC: number;
   unitPriceUSD: number;
@@ -34,6 +35,7 @@ const PurchaseRecordSchema: Schema = new Schema({
   productName: { type: String, required: true },
   productVersion: { type: String, required: true },
   planName: { type: String, required: true },
+  subPlanName: { type: String, required: true },
   quantity: { type: Number, required: true },
   canUseInThisManyPC: { type: Number, required: true },
   unitPriceUSD: { type: Number, required: true },
