@@ -20,7 +20,7 @@ export default function Home() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-4xl font-bold mb-3">Welcome to Vorklee</h1>
       <p className="text-lg mb-6">
-        Manage your dashboard and settings efficiently.
+        Hi, Manage your dashboard and settings efficiently.
       </p>
 
       <div className="space-x-4">
