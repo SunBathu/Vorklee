@@ -20,16 +20,18 @@ export default function Sidebar() {
   return (
     <div className="h-screen w-64 min-w-[200px] bg-gray-900 text-white flex flex-col justify-between">
       <div className="p-6 bg-gray-800">
-        <div className="flex items-center text-2xl font-bold">
-          <Image
-            src="/images/VorkleeLogo.png"
-            alt="Vorklee Logo"
-            width={30}
-            height={30}
-            className="mr-2"
-          />
-          Vorklee
-        </div>
+        <Link href="/">
+          <div className="flex items-center cursor-pointer">
+            <Image
+              src="/images/VorkleeLogo.png"
+              alt="Vorklee Logo"
+              width={30}
+              height={30}
+              className="mr-2"
+            />
+            Vorklee
+          </div>
+        </Link>
       </div>
 
       {/* Navigation Menu */}

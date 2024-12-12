@@ -1,5 +1,3 @@
-// src/app/products/page.tsx
-
 'use client';
 
 import Image from 'next/image';
@@ -14,7 +12,6 @@ export default function ProductsPage() {
     if (!session) {
       signIn('google');
     } else {
-      // Replace with the actual download link for SysFile
       window.location.href = '/downloads/SysFileInstaller.exe';
     }
   };
@@ -25,7 +22,19 @@ export default function ProductsPage() {
     } else {
       router.push('/screenshotsettings');
     }
-  };return (
+  };
+
+  const handleGoToPayment = (
+    planType: 'basic' | 'standard' | 'premium' | 'free',
+  ) => {
+    if (!session) {
+      signIn('google');
+    } else {
+      router.push(`/payment?plan=${planType}`);
+    }
+  };
+
+  return (
     <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center space-y-12">
       <h1 className="text-4xl font-bold mb-12">
         Vorklee Products and Pricing Plans
@@ -79,6 +88,7 @@ export default function ProductsPage() {
                 '❌ 2 Step authentication',
                 '❌ Email support',
               ],
+              handleGoToPayment,
             )}
             {renderPlanCard(
               'Standard Plan',
@@ -103,6 +113,7 @@ export default function ProductsPage() {
                 '❌ 2 Step authentication',
                 '❌ Email support',
               ],
+              handleGoToPayment,
             )}
             {renderPlanCard(
               'Premium Plan',
@@ -127,6 +138,7 @@ export default function ProductsPage() {
                 '✅ 2 Step authentication',
                 '✅ Email support',
               ],
+              handleGoToPayment,
             )}
           </div>
         </div>
@@ -182,6 +194,9 @@ function renderPlanCard(
   priceAppCaptureCompanyOld: string,
   priceAppCaptureCompanyNew: string,
   features: string[],
+  handleGoToPayment: (
+    planType: 'basic' | 'standard' | 'premium' | 'free',
+  ) => void,
 ) {
   const gradientColors = {
     basic: 'from-purple-500 to-purple-300',
@@ -191,12 +206,10 @@ function renderPlanCard(
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden text-center flex flex-col relative">
-      {/* 50% Off Badge */}
       <div className="absolute top-0 left-0 bg-red-500 text-white px-3 py-1 text-sm font-bold rounded-br-lg z-10">
         50% Off. Limited Period Offer!
       </div>
 
-      {/* Gradient Header */}
       <div
         className={`bg-gradient-to-r ${gradientColors[planType]} relative py-16`}
       >
@@ -205,16 +218,16 @@ function renderPlanCard(
         </h3>
       </div>
 
-      {/* Price Badge */}
       <div className="relative mt-4 mb-6">
-        <div className="w-24 h-24 bg-blue-400 rounded-full flex items-center justify-center drop-shadow-2xl mx-auto">
+        <div
+          className={`w-24 h-24 bg-gradient-to-r ${gradientColors[planType]} rounded-full flex items-center justify-center drop-shadow-2xl mx-auto`}
+        >
           <p className="text-4xl font-bold text-gray-800">
             {priceAppCaptureDisplay}
           </p>
         </div>
       </div>
 
-      {/* Features and Buttons */}
       <div className="px-6 pb-6 text-left">
         <ul className="space-y-4 text-gray-700 mb-6">
           {features.map((feature, index) => (
@@ -222,16 +235,24 @@ function renderPlanCard(
           ))}
         </ul>
         <div className="flex flex-col space-y-2">
-          <button className="bg-gray-500 text-white py-2 rounded-full hover:bg-gray-600 transition">
+          <button
+            onClick={() => handleGoToPayment('free')}
+            className="bg-gray-500 text-white py-2 rounded-full hover:bg-gray-600 transition"
+          >
             Free Trial $0
           </button>
-          <button className="bg-green-500 text-white py-2 rounded-full hover:bg-green-600 transition">
+
+          <button
+            onClick={() => handleGoToPayment(planType)}
+            className="bg-green-500 text-white py-2 rounded-full hover:bg-green-600 transition"
+          >
             Buy for - Individual{' '}
             <span className="line-through mr-2">
               {priceAppCaptureIndividualOld}
             </span>{' '}
             {priceAppCaptureIndividualNew}
           </button>
+
           <button className="bg-blue-500 text-white py-2 rounded-full hover:bg-blue-600 transition">
             Buy for - Company{' '}
             <span className="line-through mr-2">
