@@ -1,9 +1,31 @@
 // src/app/products/page.tsx
 
+'use client';
+
 import Image from 'next/image';
+import { useSession, signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 export default function ProductsPage() {
-  return (
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  const handleDownloadSysFile = () => {
+    if (!session) {
+      signIn('google');
+    } else {
+      // Replace with the actual download link for SysFile
+      window.location.href = '/downloads/SysFileInstaller.exe';
+    }
+  };
+
+  const handleGoToSettings = () => {
+    if (!session) {
+      signIn('google');
+    } else {
+      router.push('/screenshotsettings');
+    }
+  };return (
     <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center space-y-12">
       <h1 className="text-4xl font-bold mb-12">
         Vorklee Products and Pricing Plans
@@ -129,6 +151,22 @@ export default function ProductsPage() {
             Supports: Desktops and Laptops <br />
             Supports: Windows and macOS
           </p>
+        </div>
+
+        {/* Buttons for Download and Settings */}
+        <div className="mt-4 mb-4 flex flex-col sm:flex-row sm:space-x-4 space-y-4 sm:space-y-0 items-center">
+          <button
+            onClick={handleDownloadSysFile}
+            className="text-2xl bg-blue-500 text-white px-24 py-6 rounded-full hover:bg-blue-600 transition shadow-lg"
+          >
+            Download SysFile (Screenshot App)
+          </button>
+          <button
+            onClick={handleGoToSettings}
+            className="text-2xl bg-green-500 text-white px-24 py-6 rounded-full hover:bg-green-600 transition shadow-lg"
+          >
+            Go to Screenshot Settings
+          </button>
         </div>
       </div>
     </div>
