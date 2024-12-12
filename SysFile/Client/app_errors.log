@@ -1,0 +1,129 @@
+2024-11-25 07:56:19,217 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\httplib2\__init__.py", line 1366, in _conn_request
+    conn.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\httplib2\__init__.py", line 1142, in connect
+    address_info = socket.getaddrinfo(host, port, 0, socket.SOCK_STREAM)
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\socket.py", line 975, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno 11001] getaddrinfo failed
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google_auth_httplib2.py", line 119, in __call__
+    response, data = self.http.request(
+                     ~~~~~~~~~~~~~~~~~^
+        url, method=method, body=body, headers=headers, **kwargs
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\httplib2\__init__.py", line 1724, in request
+    (response, content) = self._request(
+                          ~~~~~~~~~~~~~^
+        conn, authority, uri, request_uri, method, body, headers, redirections, cachekey,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\httplib2\__init__.py", line 1444, in _request
+    (response, content) = self._conn_request(conn, request_uri, method, body, headers)
+                          ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\httplib2\__init__.py", line 1373, in _conn_request
+    raise ServerNotFoundError("Unable to find the server at %s" % conn.host)
+httplib2.error.ServerNotFoundError: Unable to find the server at oauth2.googleapis.com
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 350, in <module>
+    pc_folder_id = get_or_create_employee_folder(drive_service, admin_folder_id)
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 79, in get_or_create_employee_folder
+    response = drive_service.files().list(q=query, fields="files(id, name)").execute()
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\googleapiclient\_helpers.py", line 130, in positional_wrapper
+    return wrapped(*args, **kwargs)
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\googleapiclient\http.py", line 923, in execute
+    resp, content = _retry_request(
+                    ~~~~~~~~~~~~~~^
+        http,
+        ^^^^^
+    ...<7 lines>...
+        headers=self.headers,
+        ^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\googleapiclient\http.py", line 191, in _retry_request
+    resp, content = http.request(uri, method, *args, **kwargs)
+                    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google_auth_httplib2.py", line 209, in request
+    self.credentials.before_request(self._request, method, uri, request_headers)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\auth\credentials.py", line 239, in before_request
+    self._blocking_refresh(request)
+    ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\auth\credentials.py", line 202, in _blocking_refresh
+    self.refresh(request)
+    ~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\oauth2\service_account.py", line 448, in refresh
+    access_token, expiry, _ = _client.jwt_grant(
+                              ~~~~~~~~~~~~~~~~~^
+        request, self._token_uri, assertion
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\oauth2\_client.py", line 299, in jwt_grant
+    response_data = _token_endpoint_request(
+        request,
+    ...<5 lines>...
+        },
+    )
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\oauth2\_client.py", line 259, in _token_endpoint_request
+    response_status_ok, response_data, retryable_error = _token_endpoint_request_no_throw(
+                                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        request,
+        ^^^^^^^^
+    ...<6 lines>...
+        **kwargs
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google\oauth2\_client.py", line 192, in _token_endpoint_request_no_throw
+    response = request(
+        method="POST", url=token_uri, headers=headers_to_use, body=body, **kwargs
+    )
+  File "C:\Users\PC\AppData\Local\Programs\Python\Python313\Lib\site-packages\google_auth_httplib2.py", line 126, in __call__
+    raise exceptions.TransportError(exc)
+google.auth.exceptions.TransportError: Unable to find the server at oauth2.googleapis.com
+2024-11-25 08:47:21,346 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 383, in <module>
+    while retry_count < MAX_RETRIES:
+          ^^^^^^^^^^^
+NameError: name 'retry_count' is not defined
+2024-11-25 08:50:00,087 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 383, in <module>
+    while INTERNET_RETRY_COUNT < MAX_RETRIES:
+          ^^^^^^^^^^^^^^^^^^^^
+NameError: name 'INTERNET_RETRY_COUNT' is not defined. Did you mean: 'INTERNET_retry_count'?
+2024-11-25 08:50:52,859 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 383, in <module>
+    while INTERNET_RETRY_COUNT < MAX_RETRIES:
+                                 ^^^^^^^^^^^
+NameError: name 'MAX_RETRIES' is not defined
+2024-11-25 08:52:10,780 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "D:\Dropbox\Bathu\SysFile\employee_app.py", line 383, in <module>
+    while INTERNET_RETRY_COUNT < INTERNET_MAX_RETRIE:
+                                 ^^^^^^^^^^^^^^^^^^^
+NameError: name 'INTERNET_MAX_RETRIE' is not defined. Did you mean: 'INTERNET_MAX_RETRIES'?
+2024-11-25 16:12:52,572 - ERROR - An error occurred
+Traceback (most recent call last):
+  File "C:\SysFile\employee_app.py", line 387, in <module>
+    decrypted_key = decrypt_service_account_key()
+  File "C:\SysFile\employee_app.py", line 81, in decrypt_service_account_key
+    decrypted_key_bytes = decrypt(encrypted_key)  # Assuming decrypt() returns bytes
+                          ^^^^^^^
+NameError: name 'decrypt' is not defined

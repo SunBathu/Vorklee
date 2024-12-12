@@ -1,0 +1,3 @@
+﻿purchaseId,adminEmail,adminId,isAllowedUser,productId,productName,productVersion,quantity,canUseInThisManyPC,unitPriceUSD,totalPriceUSD,purchaseDate,paymentMethod,paymentStatus,vendorId,vendorName,orderStatus,deliveryDate,remarks
+1234,sunbathu@gmail.com,,TRUE,1,SysFile,2,3,3,100,300,,Google,Done,124,RajCo,,,
+5487,cleanappsonline@gmail.com,,TRUE,2,SysFile,4,1,5,200,200,,,,,,,,

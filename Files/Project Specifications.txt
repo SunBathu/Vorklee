@@ -1,0 +1,224 @@
+Review the entire specification file first for completeness. 
+Also, remember to include security and other features. 
+Recall this entire list in the whole app development process.
+Project can be found at: https://github.com/SunBathu/Vorklee
+About the project:
+We create a Python desktop app to take screenshots from employees (Also known as clients) PC.
+Admin who purchased this product can view them and manage other settings from his dashboard. We create this with Next.js
+
+1. Employee’s PC App (SysFile)
+1.1. Core Functionalities
+Screenshot Capture:
+Ensure compatibility with both Windows and macOS.
+Dynamically capture screenshots at configurable intervals (as per admin settings stored in developers MongoDB).
+Make files hidden immediately after creation to prevent user tampering.
+Compress and encrypt screenshots before uploading them to Google Drive. Screenshots can’t be uploaded immediately upon internet failures. So, encrypt them even if we upload them to Google drive immediately.
+Screenshots are uploaded directly to a structured folder in the admin's Google Drive:
+Folder structure:
+Google Drive/
+└── SysFile/
+    ├── EmployeePC1/
+    │   ├── 26.11.2024/
+    │   │   ├── screenshot1.jpg
+    │   │   ├── screenshot2.jpg
+    │   └── ...
+    ├── EmployeePC2/
+    └── ...
+
+
+The admin’s Google Drive API credentials are securely fetched during login and stored temporarily.
+
+Register Employee PC:
+When admin runs the app for the first time on the employee PC:
+The app:
+Sends a registration request to the developer’s backend using the admin email which admin input.
+Allow to install the app only when it gets a valid response. Otherwise, delete the Exe.
+Captures and sends PC-specific details (hostname, IP address, OS version, etc.).
+Backend:
+Verifies the email ID with the admin account.
+Stores the registration data in the developers MongoDB database under the employees collection.
+
+Google Drive Integration:
+Upload files to the admin’s Google Drive under an admin-specified folder.
+If admin specifies “SysFile\Imgs” as a storage path in admin dashboard and specifies “PC2-John” as a storage folder while installing desktop app, screenshots should be saved in Google drive like, SysFile\Imgs\PC2-John\25.12.2024\Screenshot1.jpg
+Dynamically create subfolders under every storage folder for everyday’s screenshots. Example: 25.12.2024
+Handle offline uploads with retries when internet is restored.
+
+Configuration Retrieval:
+I formerly planned to get it dynamically from the admin's Google Drive JSON file, to reduce many reads from developer db. Now plan changed.
+But now fetch settings (e.g., intervals, image quality) from mongodb at every start.
+Future update: Poll for updated settings periodically (e.g., every 1 hour).
+
+Configure Auto-Startup:
+The app configures itself to start automatically when the PC starts (e.g., via a Windows Registry entry).
+
+1.2. Security Features
+Encrypt sensitive files (service-account-key.json) to prevent unauthorized access.
+Ensure decrypted keys are stored only in memory during runtime.
+Validate runtime environment (e.g., PC hostname, admin folder ID) to prevent misuse.
+Use minimal permissions for the service account (access only specific folders).
+Implement anti-tampering mechanisms and obfuscate code to make reverse engineering harder.
+
+1.3. Update Mechanism
+Check for updates at every startup using the developer’s Firestore DB.
+Download and apply updates silently if the version changes.
+Continue running the current version if the update fails.
+
+1.4. Admin Controls
+Validate the app’s ability to run based on:
+Active subscription in the developer’s MongoDB.
+Developer-controlled settings like AllowToRun = True.
+
+1.5. Error Handling and Logging
+Handle all possible errors (e.g., upload failures, permission issues) gracefully.
+Log errors with detailed context (e.g., hostname, platform, timestamp).
+Upload logs to MongoDB if the developer has enabled it.
+
+1.6. Deployment
+Deliver as a single executable (.exe or .app) with:
+Encrypted service-account-key.json included.
+Necessary permissions to run as Administrator on Windows/macOS.
+Configure Task Scheduler (Windows) or Launch Agents (macOS) to run the app at startup in hidden mode.
+Ensure the app and its processes remain hidden from the employee.
+
+1.7 Start Screenshot Functionality:
+The app connects to MongoDB to fetch its settings (e.g., screenshot interval, enabled status).
+The app begins capturing and uploading screenshots to the admin's Google Drive.
+
+
+
+2. Developer’s Website (It will have only 3 pages)
+2.1. Product Showcase page along with Purchase and Subscription 
+Highlight key features and benefits of SysFile and other products we sell.
+Offer multiple subscription plans:
+Free (3 days), Basic, Pro, and Company tiers.
+Admin will purchase the product via our portal.
+During the purchase, the admin provides:
+Their email address and phone for product support
+Optional details like company name or user limits.
+Get acceptance in user agreements to ensure compliance with privacy laws and prevent misuse while purchasing.
+After the purchase:
+A unique admin account is created in our backend database.
+Display a copyable download link for the employee app (.exe) next to each product we have for sale.
+The admin logs into their dashboard further, using the email he provided during purchase.
+Use Google Authentication for secure login. Or use authentication supported by MongoDB.
+
+2.2 Admin dashboard page to manage users and all related settings
+Those who purchase our products are called Admins. We will give a dashboard page on our developer’s website for them.
+Admins will log in to this dashboard with their Gmail a/c and manage this.
+This second page will have 2 types of settings. 
+Configure global settings. Ie. common to all employee's PC. (e.g., storage path, image type, date format for subfolder name).
+Configure PC-specific settings (e.g., screenshot intervals, image quality, toggle screenshot capture, active/inactive PCs, last upload time for each PC, storage used).
+Allow admins to view logs uploaded to their Google drive from employee PCs.
+Provide usage analytics graph and tables in this page.
+
+2.3 Page to manage screenshots
+This 3rd page will have options to lists and organize screenshots stored in their Google Drive.
+Allows file filtering by PC hostname, date, or time etc.
+Delete & share, etc options also will be there.
+
+
+
+3. Developer’s MongoDB
+3.1. Data Management
+Store:
+Admin subscription details (to validate app usage).
+App version details (to enable updates).
+Logs uploaded from PCs (if enabled by the admin).
+Sample: MongoDB document for Employees (clients):
+  "email": "raja@gmail.com",
+  "admin_id": "ABC123",
+  "nick_name": "John PC",
+  "pc_name": "DESKTOP-12345",
+  "file_type": "Image",
+  "video_length": 4,
+  "capture_interval": 10,
+  "file_quality": 50,
+  "storage_used": 100,
+  "capture_enabled": true,
+  "client_notification_interval": "Daily once",
+  "last_captured_at":"2024-11-26T12:00:00Z", 
+  "sessions": "2024-11-26T12:10:00Z",
+  "registration_timestamp": "2024-11-26T12:00:00Z",
+  "os_version": "Windows 10",
+  "ip_address": "192.168.1.100",   
+  "dev_allow_to_run": true,
+  "dev_info": "Real user",
+ 
+
+3.2. Centralized Control
+Allow the developer to:
+Control app usage via dev_allow_to_run = True/False
+Stop fraudulent admins or PCs, even if they purchased the product and have a valid subscription plan.
+Update global settings for all employees.
+Configure individual settings for specific employees. like, Disable/enable specific PCs.
+
+
+
+4. Enhancements and Security Features
+4.1. Security
+Use encryption (e.g., AES) to secure all sensitive files.
+Restrict permissions for service accounts.
+Add runtime validation (e.g., hostname, admin folder ID).
+Obfuscate app code to make reverse engineering harder.
+
+4.2. Reliability
+Implement fail-safe mechanisms for app crashes and API errors.
+Add retry logic for uploads, updates, and other operations.
+
+4.3. Scalability
+Design the app to support multiple admins with independent configurations.
+Optimize API usage to avoid hitting Google Drive quotas.
+
+4.4. Usability
+Intuitive, responsive design for ease of use.
+Provide actionable feedback for all operations (e.g., save settings, errors).
+Optimize app performance to minimize resource usage on PCs.
+
+4.5. Legal and Compliance
+Ensure compliance with privacy laws like GDPR:
+Obtain employee consent if required.
+Allow admins to control data retention policies.
+
+4.6. Follow the company standards for coding approach throughout the project
+Create reusable components and use them. Because, I will add more modules later.
+Follow the ES Modules (ESM) approach for future proof.
+Use native SWC binary. It's faster and better for performance
+
+
+
+
+
+5. Future Enhancements
+5.1 Real-Time Notifications:
+Use Firebase Cloud Messaging (FCM) to push updates to employee apps immediately.
+Real-time alerts:
+Failed screenshot uploads.
+Inactive employee PCs.
+Approaching storage limits.
+Email summaries:
+Daily or weekly summaries of captured screenshots and active/inactive PCs.
+
+5.2 Admin Power Controls:
+Allow admins to remotely shutdown employee PCs.
+Assign roles (e.g., Super Admin, Regular Admin).
+
+5.3 Multi-Language Support:
+Add localization features for international users.
+
+5.4 Cloud Storage Alternatives:
+Add support for Dropbox, OneDrive, or AWS S3 as additional storage options.
+
+5.5 . Security Measures
+To ensure security:
+Admin ID/Token-Based Association:
+Each employee app is tied to an admin account using a unique token, preventing unauthorized registrations.
+Temporary Credentials:
+The employee app fetches temporary credentials to upload screenshots directly to Google Drive.
+No long-term admin credentials are stored locally.
+Regular Token Refresh:
+Tokens for Google Drive and Firestore are refreshed periodically to prevent misuse.
+
+
+
+

@@ -1,0 +1,3 @@
+﻿adminEmail,adminId,dateFormat,storagePath,whichFoldersToDeleteWhenStorageFull
+sunbathu@gmail.com,,YYYY-MM-DD,sysFile2,Delete-the-oldest-folders-among-all-users-(Recommended)
+cleanappsonline@gmail.com,,DD-MM-YYYY,MyFold,Delete-the-oldest-folders-among-all-users-(Recommended)
