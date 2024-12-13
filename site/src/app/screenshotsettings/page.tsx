@@ -50,7 +50,8 @@ export default function SettingsPage() {
     const fetchSettings = async () => {
       try {
         const response = await fetch('/api/screenshotsettings');
-        if (!response.ok) throw new Error('Failed to fetch screenshot settings.');
+        if (!response.ok)
+          throw new Error('Failed to fetch screenshot settings.');
 
         const data = await response.json();
         setGlobalSettings({
@@ -81,19 +82,19 @@ export default function SettingsPage() {
   };
 
   // Handle PC-Specific Settings Change
-const handlePcChange = (
-  index: number,
-  field: keyof PcSetting,
-  value: string | number | boolean,
-) => {
-  const updatedSettings = [...pcSettingsList];
-  updatedSettings[index] = {
-    ...updatedSettings[index],
-    [field]: value,
+  const handlePcChange = (
+    index: number,
+    field: keyof PcSetting,
+    value: string | number | boolean,
+  ) => {
+    const updatedSettings = [...pcSettingsList];
+    updatedSettings[index] = {
+      ...updatedSettings[index],
+      [field]: value,
+    };
+    setPcSettingsList(updatedSettings);
+    setIsModified(true);
   };
-  setPcSettingsList(updatedSettings);
-  setIsModified(true);
-};
 
   // Save Settings to the Server
   const handleSave = async () => {
@@ -203,7 +204,10 @@ const handlePcChange = (
         </div>
 
         {/* PC-Specific Settings Table */}
-        <div className="pc-section">
+        <div
+          className="pc-section"
+          style={{ overflowX: 'auto', paddingBottom: '20px' }}
+        >
           <div style={{ overflowX: 'auto' }}>
             {/* Table with Clickable Headers */}
             <div className="table-container"></div>{' '}
@@ -272,9 +276,7 @@ const handlePcChange = (
                   </th>
                   <th
                     onClick={() =>
-                      showHelp(
-                          'Select to capture. Unselect to stop capture.',
-                      )
+                      showHelp('Select to capture. Unselect to stop capture.')
                     }
                   >
                     Enabled
@@ -486,7 +488,7 @@ const handlePcChange = (
         }
         .help-box {
           width: 35%; /* Allocate 35% width for the help box */
-          height: 250px;
+          height: 200px;
           padding: 5px 0px 0px 0px;
           background-color: #4267b2; /* Match the main blue color */
           color: white;

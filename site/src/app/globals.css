@@ -6,19 +6,20 @@
 
 /* Global Styles */
 
-html,
-body {
-  @apply font-sans text-gray-800 bg-gray-100;
-  font-family: 'Inter', sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--foreground);
-  background: var(--background);
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; /* Prevent horizontal scroll bar */
+html, body {
+  height: 100%;          /* Ensure html and body take full height */
+  margin: 0;             /* Remove default margins */
+  padding: 0;            /* Remove default padding */
+  overflow: hidden; /* Show scroll bars only when necessary */
 }
+
+body {
+  min-height: 100vh;   /* Ensure minimum height is full viewport */
+  overflow-x: hidden; /* Enable horizontal scroll when content overflows */
+  overflow-y: auto; /* Enable vertical scroll when content overflows */
+}
+
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -40,4 +41,16 @@ body {
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradientAnimation 4s ease infinite;
+}
+/* Ensure tables are scrollable when content overflows */
+.table-scroll {
+  max-height: 500px;     /* Set a maximum height for tables */
+  overflow: auto;        /* Enable scroll bars when content exceeds the max height */
+  border-radius: 0.5rem; /* Optional: Add rounded corners */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Add shadow for a clean look */
+}
+
+/* Ensure table maintains a minimum width */
+.table-scroll table {
+  min-width: 1200px;     /* Ensure table does not shrink below this width */
 }

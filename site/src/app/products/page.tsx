@@ -40,7 +40,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center space-y-12">
+    <div className="bg-gray-100 p-8 flex flex-col items-center space-y-12">
       <h1 className="text-4xl font-bold mb-12">
         Vorklee Products and Pricing Plans
       </h1>
@@ -393,9 +393,7 @@ function renderPlanCard(
             <span className="line-through mr-2 text-gray-300">
               {priceIndividualOld}
             </span>
-            <span className="font-extrabold">
-              {priceIndividualNew}
-            </span>
+            <span className="font-extrabold">{priceIndividualNew}</span>
           </button>
 
           <button

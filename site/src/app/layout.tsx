@@ -13,8 +13,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <body className="h-screen flex overflow-hidden">
         <SessionProvider>
-          <Sidebar />
-          <div className="flex-1 flex flex-col">
+          <div className="w-64 flex-shrink-0">
+            <Sidebar />
+          </div>
+          <div className="flex-1 flex flex-col overflow-hidden">
             <TopMessageBar />
             <main className="flex-1 p-4 bg-gray-100 overflow-auto">
               {children}

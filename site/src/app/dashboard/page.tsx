@@ -48,13 +48,13 @@ export default function Dashboard() {
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-4">
         Welcome, {session?.user?.name || 'Guest'}
-        {session?.user?.image && (
+        {session?.user?.image ? (
           <img
             src={session.user.image}
             alt="Profile Picture"
             className="h-10 w-10 rounded-full inline ml-2"
           />
-        )}
+        ) : null}
       </h1>
 
       <div className="grid grid-cols-2 gap-6 mb-6">

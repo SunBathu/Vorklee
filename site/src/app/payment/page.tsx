@@ -45,92 +45,92 @@ export default function PaymentPage() {
       `/success?plan=${planType}&subPlan=${subPlanName}&quantity=${data.quantity}`,
     );
   };
-return (
-  <div className="min-h-screen flex items-center justify-center bg-white">
-    <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-2xl text-center overflow-y-auto">
-      <div className="space-y-6">
-        <div className="text-3xl font-bold text-blue-600">
-          {subPlanName === 'Free Trial'
-            ? `${planType?.toUpperCase()} Plan`
-            : `Payment for ${planType?.toUpperCase()} Plan`}
-        </div>
-        <div className="text-3xl font-bold text-blue-600">{subPlanName}</div>
-
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <div className="flex items-center justify-between">
-            <label className="font-semibold">Unit Price:</label>
-            <span className="text-gray-700">${unitPrice.toFixed(2)}</span>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <label className="font-semibold">
-              Number of computers for installation:
-            </label>
-            <Controller
-              name="quantity"
-              control={control}
-              defaultValue={1}
-              render={({ field }) => (
-                <select
-                  {...field}
-                  onChange={(e) => {
-                    field.onChange(e);
-                    handleQuantityChange(Number(e.target.value));
-                  }}
-                  className="border p-2 rounded w-24"
-                >
-                  {[
-                    1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50, 100,
-                  ].map((q) => (
-                    <option key={q} value={q}>
-                      {q}
-                    </option>
-                  ))}
-                </select>
-              )}
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <label className="font-semibold">Total Price:</label>
-            <span className="text-gray-700">${totalPrice.toFixed(2)}</span>
-          </div>
-
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              {...register('agreement', {
-                required: 'You must agree to the terms and conditions',
-              })}
-            />
-            <span className="ml-2">
-              I agree to the{' '}
-              <a
-                href="/agreement.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-500 underline"
-              >
-                terms and conditions
-              </a>
-            </span>
-          </label>
-          {errors.agreement && (
-            <p className="text-red-500">{errors.agreement.message}</p>
-          )}
-
-          <button
-            type="submit"
-            className="w-full bg-green-500 text-white py-3 rounded-full hover:bg-green-600 transition"
-          >
+  return (
+    <div className="flex items-center justify-center bg-white">
+      <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-2xl text-center overflow-y-auto">
+        <div className="space-y-6">
+          <div className="text-3xl font-bold text-blue-600">
             {subPlanName === 'Free Trial'
-              ? 'Start with Free Plan'
-              : 'Proceed to Payment'}
-          </button>
-        </form>
+              ? `${planType?.toUpperCase()} Plan`
+              : `Payment for ${planType?.toUpperCase()} Plan`}
+          </div>
+          <div className="text-3xl font-bold text-blue-600">{subPlanName}</div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex items-center justify-between">
+              <label className="font-semibold">Unit Price:</label>
+              <span className="text-gray-700">${unitPrice.toFixed(2)}</span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="font-semibold">
+                Number of computers for installation:
+              </label>
+              <Controller
+                name="quantity"
+                control={control}
+                defaultValue={1}
+                render={({ field }) => (
+                  <select
+                    {...field}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleQuantityChange(Number(e.target.value));
+                    }}
+                    className="border p-2 rounded w-24"
+                  >
+                    {[
+                      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 40, 50,
+                      100,
+                    ].map((q) => (
+                      <option key={q} value={q}>
+                        {q}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="font-semibold">Total Price:</label>
+              <span className="text-gray-700">${totalPrice.toFixed(2)}</span>
+            </div>
+
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                {...register('agreement', {
+                  required: 'You must agree to the terms and conditions',
+                })}
+              />
+              <span className="ml-2">
+                I agree to the{' '}
+                <a
+                  href="/agreement.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-500 underline"
+                >
+                  terms and conditions
+                </a>
+              </span>
+            </label>
+            {errors.agreement && (
+              <p className="text-red-500">{errors.agreement.message}</p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full bg-green-500 text-white py-3 rounded-full hover:bg-green-600 transition"
+            >
+              {subPlanName === 'Free Trial'
+                ? 'Start with Free Plan'
+                : 'Proceed to Payment'}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
-  </div>
-);
-
+  );
 }
