@@ -1,36 +1,38 @@
+import * as constants from '@/utils/constants';
+
 export const productPricing = {
-  'Screenshot Capture App': {
-    basic: {
-      'Free Trial': 0,
-      Individual: 2,
-      Company: 4,
+  [constants.APP_SCREENSHOT_CAPTURE]: {
+    [constants.PLAN_BASIC]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 2,
+      [constants.PLAN_TIER_COMPANY]: 4,
     },
-    standard: {
-      'Free Trial': 0,
-      Individual: 4,
-      Company: 8,
+    [constants.PLAN_STANDARD]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 4,
+      [constants.PLAN_TIER_COMPANY]: 8,
     },
-    premium: {
-      'Free Trial': 0,
-      Individual: 6,
-      Company: 12,
+    [constants.PLAN_PREMIUM]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 8,
+      [constants.PLAN_TIER_COMPANY]: 16,
     },
   },
-  'Notes App': {
-    basic: {
-      'Free Trial': 0,
-      Individual: 1,
-      Company: 2,
+  [constants.APP_NOTES]: {
+    [constants.PLAN_BASIC]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 1,
+      [constants.PLAN_TIER_COMPANY]: 2,
     },
-    standard: {
-      'Free Trial': 0,
-      Individual: 2,
-      Company: 4,
+    [constants.PLAN_STANDARD]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 2,
+      [constants.PLAN_TIER_COMPANY]: 4,
     },
-    premium: {
-      'Free Trial': 0,
-      Individual: 4,
-      Company: 8,
+    [constants.PLAN_PREMIUM]: {
+      [constants.PLAN_TIER_FREE_TRIAL]: 0,
+      [constants.PLAN_TIER_INDIVIDUAL]: 4,
+      [constants.PLAN_TIER_COMPANY]: 8,
     },
   },
 };

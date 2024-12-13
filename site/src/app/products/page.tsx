@@ -5,6 +5,8 @@ import { useMessage } from '@/context/MessageContext';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import * as constants from '@/utils/constants';
+import { productPricing } from '@/utils/pricing';
 
 interface Purchase {
   planTiers: string;
@@ -103,9 +105,9 @@ export default function ProductsPage() {
           {/* Plans */}
           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
             {renderPlanCard(
-              'Basic Plan',
+              `${constants.PLAN_BASIC} Plan`,
               'basic',
-              '$2',
+              productPricing["Screenshot Capture App"].basic["Individual"],
               '$4',
               '$2',
               '$8',
