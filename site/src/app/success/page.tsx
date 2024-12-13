@@ -105,7 +105,8 @@ export default function SuccessPage() {
           }),
         });
 
-        console.log('Sending data:', {
+
+        console.log(' Sending data:', {
           purchaseId,
           adminEmail: session?.user?.email || 'unknown@example.com',
           adminId: session?.user?.id || 'unknown',
