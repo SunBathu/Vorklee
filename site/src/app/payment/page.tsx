@@ -48,14 +48,20 @@ export default function PaymentPage() {
   return (
     <div className="flex items-center justify-center bg-white">
       <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-2xl text-center overflow-y-auto">
-        <div className="space-y-6">
+        <div className="space-y-2">
           <div className="text-3xl font-bold text-blue-600">
             {subPlanName === 'Free Trial'
-              ? `${planType?.toUpperCase()} Plan`
-              : `Payment for ${planType?.toUpperCase()} Plan`}
+              ? `${planType?.charAt(0).toUpperCase()}${planType
+                  ?.slice(1)
+                  .toLowerCase()} Plan`
+              : `${planType?.charAt(0).toUpperCase()}${planType
+                  ?.slice(1)
+                  .toLowerCase()} Plan`}
           </div>
-          <div className="text-3xl font-bold text-blue-600">{subPlanName}</div>
 
+          <div className="text-3xl font-bold text-blue-600 border-b-8 border-blue-400 pb-2">
+            {subPlanName}
+          </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex items-center justify-between">
               <label className="font-semibold">Unit Price:</label>
