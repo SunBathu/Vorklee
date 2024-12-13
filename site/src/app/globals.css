@@ -5,6 +5,7 @@
 @tailwind utilities;
 
 /* Global Styles */
+
 html,
 body {
   @apply font-sans text-gray-800 bg-gray-100;
@@ -18,7 +19,6 @@ body {
   padding: 0;
   overflow: hidden; /* Prevent horizontal scroll bar */
 }
-
 :root {
   --background: #ffffff;
   --foreground: #171717;
