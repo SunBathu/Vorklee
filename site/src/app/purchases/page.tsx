@@ -13,7 +13,7 @@ interface PurchaseRecord {
   canUseInThisManyPC: number;
   unitPrice: number;
   totalPrice: number;
-  currency: number;
+  currency: string;
   paymentMethod: string;
   paymentStatus: string;
   orderStatus: string;
@@ -41,7 +41,7 @@ export default function PurchasesPage() {
   }, []);
 
   return (
-    <div className="p-8 bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen">
+    <div className="p-8 bg-gradient-to-br from-gray-100 to-gray-300">
       <h1 className="text-4xl font-extrabold text-left text-gray-800 mb-8">
         Your Purchases
       </h1>

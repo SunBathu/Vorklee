@@ -5,16 +5,16 @@ export interface PurchaseRecord extends Document {
   adminEmail: string;
   adminId: string;
   isAllowedUser: boolean;
-  productId: string;
+  productId: number;
   productName: string;
-  productVersion: string;
+  productVersion: number;
   planName: string;
   planTiers: string;
   quantity: number;
   canUseInThisManyPC: number;
   unitPrice: number;
   totalPrice: number;
-  currency: number;
+  currency: string;
   paymentMethod: string;
   paymentStatus: string;
   vendorId: string;
@@ -32,16 +32,16 @@ const PurchaseRecordSchema: Schema = new Schema({
   adminEmail: { type: String, required: true },
   adminId: { type: String, required: true },
   isAllowedUser: { type: Boolean, default: true },
-  productId: { type: String, required: true },
+  productId: { type: Number, required: true },
   productName: { type: String, required: true },
-  productVersion: { type: String, required: true },
+  productVersion: { type: Number, required: true },
   planName: { type: String, required: true },
   planTiers: { type: String, required: true },
   quantity: { type: Number, required: true },
   canUseInThisManyPC: { type: Number, required: true },
   unitPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
-  currency: { type: Number, required: true },
+  currency: { type: String, required: true, default: 'USD' },
   paymentMethod: { type: String, required: true },
   paymentStatus: { type: String, required: true },
   vendorId: { type: String, required: true },
