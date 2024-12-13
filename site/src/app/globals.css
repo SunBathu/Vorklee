@@ -54,3 +54,8 @@ body {
 .table-scroll table {
   min-width: 1200px;     /* Ensure table does not shrink below this width */
 }
+
+.top-message-bar {
+  min-height: 50px;
+  width: 100%;
+}
