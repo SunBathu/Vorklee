@@ -15,7 +15,7 @@ export default function ProductsPage() {
   const router = useRouter();
   const [showFreeTrialMessage, setShowFreeTrialMessage] = useState(false);
   const { setMessage } = useMessage(); // Correctly destructure setMessage
-  
+
   const handleFreeTrialClick = async () => {
     if (!session) {
       signIn('google');
@@ -32,7 +32,7 @@ export default function ProductsPage() {
       if (freeTrialExists) {
         setMessage('You have already registered for a Free Trial.');
       } else {
-        router.push(`/payment?plan=basic&subPlan=Free Trial`);
+        router.push(`/payment?plan=basic&planTiers=Free Trial`);
       }
     } catch (error) {
       console.error('Error fetching purchases:', error);
@@ -40,11 +40,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleGoToPayment = (planType: string, subPlan: string) => {
+  const handleGoToPayment = (planType: string, planTiers: string) => {
     if (!session) {
       signIn('google');
     } else {
-      router.push(`/payment?plan=${planType}&subPlan=${subPlan}`);
+      router.push(`/payment?plan=${planType}&planTiers=${planTiers}`);
     }
   };
 
@@ -377,7 +377,7 @@ function renderPlanCard(
   priceCompanyOld: string,
   priceCompanyNew: string,
   features: string[],
-  handleGoToPayment: (planType: string, subPlan: string) => void,
+  handleGoToPayment: (planType: string, planTiers: string) => void,
   handleFreeTrialClick: () => void, // Add this parameter
 ) {
   const gradientColors = {

@@ -9,13 +9,12 @@ import { capitalizeFirstLetter } from '@/utils/stringUtils';
 export default function SuccessPage() {
   const searchParams = useSearchParams();
   const productName =
-    searchParams.get('productName') || 'Screenshot Capture App'; // Default product
-const planType = searchParams.get('plan') || 'basic'; // e.g., 'basic', 'standard', 'premium'
-const planTiers = searchParams.get('planTiers') || 'Free Trial'; // e.g., 'Free Trial', 'Individual', 'Company'
+  searchParams.get('productName') || 'Screenshot Capture App'; // Default product
+  const planType = searchParams.get('plan'); // e.g., 'basic', 'standard', 'premium'
+  const planTiers = searchParams.get('planTiers'); // e.g., 'Free Trial', 'Individual', 'Company'
   const quantity = Number(searchParams.get('quantity')) || 1;
   const router = useRouter();
   const { data: session } = useSession();
-
   const hasCreatedRecord = useRef(false);
 
  useEffect(() => {
@@ -37,7 +36,7 @@ const planTiers = searchParams.get('planTiers') || 'Free Trial'; // e.g., 'Free 
        type PlanTier = 'Free Trial' | 'Individual' | 'Company';
 
        const validPlanType = (planType as PlanType) || 'basic';
-       const validPlanTier = (planTiers as PlanTier) || 'Free Trial';
+       const validPlanTier = (planTiers as PlanTier) || 'Free Trial'; // Ensure this reflects the correct selection
 
        // Ensure safe access to productPricing using type assertion
        const productPricingForProduct =
@@ -90,31 +89,31 @@ const planTiers = searchParams.get('planTiers') || 'Free Trial'; // e.g., 'Free 
          }),
        });
 
-console.log('Sending data:', {
-  purchaseId,
-  adminEmail: session?.user?.email || 'unknown@example.com',
-  adminId: session?.user?.id || 'unknown',
-  isAllowedUser: true,
-  productId: product.id,
-  productName: product.name,
-  productVersion: product.version,
-  planName: capitalizeFirstLetter(validPlanType),
-  planTiers: validPlanTier,
-  quantity,
-  canUseInThisManyPC: quantity,
-  unitPrice,
-  totalPrice,
-  paymentMethod: validPlanTier === 'Free Trial' ? 'N/A' : 'Card',
-  paymentStatus: validPlanTier === 'Free Trial' ? 'Free' : 'Paid',
-  vendorId: 'VL1',
-  vendorName: 'Vorklee Inc.',
-  orderStatus: 'Completed',
-  planPurchaseDate: currentDate,
-  planActivationDate: currentDate,
-  planExpiryDate,
-  autoRenewal: validPlanTier !== 'Free Trial',
-  remarks: 'Nil',
-});
+       console.log('Sending data:', {
+         purchaseId,
+         adminEmail: session?.user?.email || 'unknown@example.com',
+         adminId: session?.user?.id || 'unknown',
+         isAllowedUser: true,
+         productId: product.id,
+         productName: product.name,
+         productVersion: product.version,
+         planName: capitalizeFirstLetter(validPlanType),
+         planTiers: validPlanTier,
+         quantity,
+         canUseInThisManyPC: quantity,
+         unitPrice,
+         totalPrice,
+         paymentMethod: validPlanTier === 'Free Trial' ? 'N/A' : 'Card',
+         paymentStatus: validPlanTier === 'Free Trial' ? 'Free' : 'Paid',
+         vendorId: 'VL1',
+         vendorName: 'Vorklee Inc.',
+         orderStatus: 'Completed',
+         planPurchaseDate: currentDate,
+         planActivationDate: currentDate,
+         planExpiryDate,
+         autoRenewal: validPlanTier !== 'Free Trial',
+         remarks: 'Nil',
+       });
 
        if (!response.ok) {
          const errorText = await response.text();

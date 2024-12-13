@@ -20,7 +20,7 @@ export default function PaymentPage() {
   const [unitPrice, setUnitPrice] = useState(0);
   const searchParams = useSearchParams();
   const planType = searchParams.get('plan'); // e.g., 'basic', 'standard', 'premium'
-  const subPlanName = searchParams.get('subPlan'); // e.g., 'Free Trial', 'Individual', 'Company'
+  const planTiersName = searchParams.get('planTiers'); // e.g., 'Free Trial', 'Individual', 'Company'
   const router = useRouter();
 
   // Pricing details based on sub-plan selection
@@ -31,10 +31,10 @@ export default function PaymentPage() {
   };
 
   useEffect(() => {
-    const price = priceMap[subPlanName || 'Free Trial'];
+    const price = priceMap[planTiersName || 'Free Trial'];
     setUnitPrice(price);
     setTotalPrice(price); // Default quantity is 1
-  }, [planType, subPlanName]);
+  }, [planType, planTiersName]);
 
   const handleQuantityChange = (quantity: number) => {
     setTotalPrice(unitPrice * quantity);
@@ -42,7 +42,7 @@ export default function PaymentPage() {
 
   const onSubmit = async (data: FormData) => {
     router.push(
-      `/success?plan=${planType}&subPlan=${subPlanName}&quantity=${data.quantity}`,
+      `/success?plan=${planType}&planTiers=${planTiersName}&quantity=${data.quantity}`,
     );
   };
   return (
@@ -50,7 +50,7 @@ export default function PaymentPage() {
       <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-2xl text-center overflow-y-auto">
         <div className="space-y-2">
           <div className="text-3xl font-bold text-blue-600">
-            {subPlanName === 'Free Trial'
+            {planTiersName === 'Free Trial'
               ? `${planType?.charAt(0).toUpperCase()}${planType
                   ?.slice(1)
                   .toLowerCase()} Plan`
@@ -60,7 +60,7 @@ export default function PaymentPage() {
           </div>
 
           <div className="text-3xl font-bold text-blue-600 border-b-8 border-blue-400 pb-2">
-            {subPlanName}
+            {planTiersName}
           </div>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex items-center justify-between">
@@ -130,7 +130,7 @@ export default function PaymentPage() {
               type="submit"
               className="w-full bg-green-500 text-white py-3 rounded-full hover:bg-green-600 transition"
             >
-              {subPlanName === 'Free Trial'
+              {planTiersName === 'Free Trial'
                 ? 'Start with Free Plan'
                 : 'Proceed to Payment'}
             </button>
