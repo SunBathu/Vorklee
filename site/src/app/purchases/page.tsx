@@ -5,8 +5,8 @@ import { useEffect, useState } from 'react';
 
 interface PurchaseRecord {
   purchaseId: string;
-  productName: string;
-  productVersion: string;
+  apptName: string;
+  appVersion: string;
   planName: string;
   planTiers: string;
   quantity: number;
@@ -80,7 +80,7 @@ export default function PurchasesPage() {
                 </td>
 
                 <td className="p-3">{purchase.purchaseId}</td>
-                <td className="p-3">{purchase.productName}</td>
+                <td className="p-3">{purchase.appName}</td>
                 <td className="p-3">{purchase.planName}</td>
                 <td className="p-3">{purchase.planTiers}</td>
                 <td className="p-3">{purchase.quantity}</td>
@@ -134,5 +134,4 @@ export default function PurchasesPage() {
       </div>
     </div>
   );
-
 }

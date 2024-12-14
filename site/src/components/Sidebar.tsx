@@ -19,7 +19,6 @@ export default function Sidebar() {
 
   return (
     <div className="h-screen w-64 min-w-[200px] bg-gray-900 text-white flex flex-col justify-between overflow-hidden">
-
       <div className="p-6 bg-gray-800">
         <Link href="/">
           <div className="flex items-center cursor-pointer">
@@ -84,6 +83,16 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
+      
+      {/* Contact Us Section */}
+      <div className="p-6 bg-gray-900">
+        <Link
+          href="/contactus"
+          className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
+        >
+          Contact Us
+        </Link>
+      </div>
 
       {/* Bottom Section with User Profile */}
       <div

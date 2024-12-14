@@ -1,13 +1,12 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/utils/dbConnect';
 import PurchaseRecord from '@/models/PurchaseRecords';
+import dbConnect from '@/utils/dbConnect';
 
 export async function POST(request: Request) {
-  await dbConnect();
-
   try {
+    await dbConnect();
     const data = await request.json();
-    console.log('Received data:', data); // Add this for debugging
+    console.log('Received data:', data);
 
     const newPurchase = new PurchaseRecord(data);
     await newPurchase.save();
@@ -18,10 +17,27 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error('Error saving purchase record:', error);
-    return NextResponse.json(
-      { error: 'Error saving purchase record' },
-      { status: 500 },
-    );
+
+    if (error instanceof Error) {
+      // Handle generic errors
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    } else if (
+      typeof error === 'object' &&
+      error !== null &&
+      'errors' in error
+    ) {
+      // Handle Mongoose validation errors
+      return NextResponse.json(
+        { error: 'Validation Error', details: error.errors },
+        { status: 400 },
+      );
+    } else {
+      // Handle unknown errors
+      return NextResponse.json(
+        { error: 'Unknown error occurred' },
+        { status: 500 },
+      );
+    }
   }
 }
 

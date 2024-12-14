@@ -4,14 +4,12 @@ import { useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { productPricing } from '@/utils/pricing';
-import { capitalizeFirstLetter } from '@/utils/stringUtils';
-import { constants as bufferConstants } from 'buffer';
 import * as constants from '@/utils/constants';
 
 export default function SuccessPage() {
   const searchParams = useSearchParams();
-  const productName = searchParams.get('productName') || constants.APP_CAPTURE; // Default product
-  const planName = searchParams.get('plan'); // e.g., 'basic', 'standard', 'premium'
+  const appName = searchParams.get('appName') || constants.APP_CAPTURE; // Default product
+  const planName = searchParams.get('planName'); // e.g., 'basic', 'standard', 'premium'
   const planTiers = searchParams.get('planTiers'); // e.g., 'Free Trial', 'Individual', 'Company'
   const quantity = Number(searchParams.get('quantity')) || 1;
   const router = useRouter();
@@ -20,38 +18,28 @@ export default function SuccessPage() {
 
   useEffect(() => {
     const createPurchaseRecord = async () => {
+      if (hasCreatedRecord.current) return;
+      hasCreatedRecord.current = true;
+
       try {
-        if (hasCreatedRecord.current) return;
-        hasCreatedRecord.current = true;
-
         const purchaseId = `PUR-${Date.now()}`;
-
         const product = {
-          id: productName === constants.APP_CAPTURE ? 1 : 2,
-          name: productName,
+          id: appName === constants.APP_CAPTURE ? 1 : 2,
+          name: appName,
           version: 1,
         };
 
-        // Define valid types for planName and planTiers
-        // type planName = 'basic' | 'standard' | 'premium';
-        type planName =
-          | typeof constants.PLAN_BASIC
-          | typeof constants.PLAN_STANDARD
-          | typeof constants.PLAN_PREMIUM;
-        // type PlanTier = 'Free Trial' | 'Individual' | 'Company';
-        type PlanTier =
-          | typeof constants.TIER_TRIAL
-          | typeof constants.TIER_INDIVIDUAL
-          | typeof constants.TIER_COMPANY;
+        type PlanName = 'Basic' | 'Standard' | 'Premium';
+        type PlanTier = 'Free Trial' | 'Individual' | 'Company';
 
-        const validPlanType = (planName as planName) || constants.PLAN_BASIC;
-        const validPlanTier = (planTiers as PlanTier) || constants.TIER_TRIAL; // Ensure this reflects the correct selection
+        const validPlanType = (planName as PlanName) || constants.PLAN_BASIC;
+        const validPlanTier = (planTiers as PlanTier) || constants.TIER_TRIAL;
 
-        // Ensure safe access to productPricing using type assertion
+        // Ensure safe access to productPricing
         const productPricingForProduct =
-          productPricing[productName as keyof typeof productPricing];
+          productPricing[appName as keyof typeof productPricing];
         if (!productPricingForProduct) {
-          console.error(`No pricing found for product: ${productName}`);
+          console.error(`No pricing found for product: ${appName}`);
           return;
         }
 
@@ -67,49 +55,15 @@ export default function SuccessPage() {
           planExpiryDate.setFullYear(currentDate.getFullYear() + 1);
         }
 
-        const response = await fetch('/api/purchases', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            purchaseId,
-            adminEmail: session?.user?.email || 'unknown@example.com',
-            adminId: session?.user?.id || 'unknown',
-            isAllowedUser: true,
-            productId: product.id,
-            productName: product.name,
-            productVersion: product.version,
-            planName: validPlanType,
-            planTiers: validPlanTier,
-            quantity,
-            canUseInThisManyPC: quantity,
-            unitPrice,
-            totalPrice,
-            currency: constants.CURRENCY_USD,
-            paymentMethod:
-              validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
-            paymentStatus:
-              validPlanTier === constants.TIER_TRIAL
-                ? 'Free'
-                : constants.STATUS_PAID,
-            vendorId: 'VL1',
-            vendorName: 'Vorklee Inc.',
-            orderStatus: constants.STATUS_COMPLETED,
-            planPurchaseDate: currentDate,
-            planActivationDate: currentDate,
-            planExpiryDate,
-            autoRenewal: validPlanTier !== constants.TIER_TRIAL,
-            remarks: 'Nil',
-          }),
-        });
 
-        console.log(' Sending data:', {
+        console.log('Data being sent to API:', {
           purchaseId,
           adminEmail: session?.user?.email || 'unknown@example.com',
           adminId: session?.user?.id || 'unknown',
           isAllowedUser: true,
-          productId: product.id,
-          productName: product.name,
-          productVersion: product.version,
+          appId: product.id,
+          appName: product.name,
+          appVersion: product.version,
           planName: validPlanType,
           planTiers: validPlanTier,
           quantity,
@@ -126,12 +80,49 @@ export default function SuccessPage() {
           vendorId: 'VL1',
           vendorName: 'Vorklee Inc.',
           orderStatus: constants.STATUS_COMPLETED,
-          planPurchaseDate: currentDate,
-          planActivationDate: currentDate,
+          planPurchaseDate: new Date(),
+          planActivationDate: new Date(),
           planExpiryDate,
           autoRenewal: validPlanTier !== constants.TIER_TRIAL,
           remarks: 'Nil',
         });
+
+        
+        const response = await fetch('/api/purchases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            purchaseId: purchaseId || 'UNKNOWN_ID',
+            adminEmail: session?.user?.email || 'unknown@example.com',
+            adminId: session?.user?.id || 'unknown',
+            isAllowedUser: true,
+            appId: product.id,
+            appName: product.name,
+            appVersion: product.version,
+            planName: validPlanType,
+            planTiers: validPlanTier,
+            quantity: quantity || 1,
+            canUseInThisManyPC: quantity || 1,
+            unitPrice: unitPrice || 0,
+            totalPrice: totalPrice || 0,
+            currency: constants.CURRENCY_USD,
+            paymentMethod:
+              validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
+            paymentStatus:
+              validPlanTier === constants.TIER_TRIAL
+                ? 'Free'
+                : constants.STATUS_PAID,
+            vendorId: 'VL1',
+            vendorName: 'Vorklee Inc.',
+            orderStatus: constants.STATUS_COMPLETED,
+            planPurchaseDate: new Date(),
+            planActivationDate: new Date(),
+            planExpiryDate: planExpiryDate,
+            autoRenewal: validPlanTier !== constants.TIER_TRIAL,
+            remarks: 'Nil',
+          }),
+        });
+
 
         if (!response.ok) {
           const errorText = await response.text();
@@ -150,7 +141,7 @@ export default function SuccessPage() {
     };
 
     createPurchaseRecord();
-  }, [productName, planName, planTiers, quantity, session]);
+  }, [appName, planName, planTiers, quantity, session]);
 
   return (
     <div className="h-screen flex items-center justify-center bg-white">

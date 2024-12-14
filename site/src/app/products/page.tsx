@@ -28,27 +28,33 @@ export default function ProductsPage() {
       signIn('google');
       return;
     }
+console.log(appName, planName, planTiers);
+
 
     try {
       const response = await fetch('/api/purchases');
       const data: Purchase[] = await response.json();
+      console.log('API Data:', data);
+      
       const freeTrialExists = data.some(
         (purchase) =>
           purchase.appName === appName &&
           purchase.planName === planName &&
           purchase.planTiers === planTiers,
       );
+      console.log('Free Trial Exists:', freeTrialExists);
 
       if (freeTrialExists) {
         showMessage(
           'You have already registered for a Free Trial for this app.',
           {
             vanishTime: 0,
-            blinkCount: 2,
+            blinkCount: 4,
             buttons: 'okCancel',
             icon: 'alert',
-          },
+          }
         );
+       
       } else {
         router.push(
           `/payment?appName=${appName}&planName=${planName}&planTiers=${planTiers}`,

@@ -5,9 +5,9 @@ export interface PurchaseRecord extends Document {
   adminEmail: string;
   adminId: string;
   isAllowedUser: boolean;
-  productId: number;
-  productName: string;
-  productVersion: number;
+  appId: number;
+  appName: string;
+  appVersion: number;
   planName: string;
   planTiers: string;
   quantity: number;
@@ -32,9 +32,9 @@ const PurchaseRecordSchema: Schema = new Schema({
   adminEmail: { type: String, required: true },
   adminId: { type: String, required: true },
   isAllowedUser: { type: Boolean, default: true },
-  productId: { type: Number, required: true },
-  productName: { type: String, required: true },
-  productVersion: { type: Number, required: true },
+  appId: { type: Number, required: true },
+  appName: { type: String, required: true },
+  appVersion: { type: Number, required: true },
   planName: { type: String, required: true },
   planTiers: { type: String, required: true },
   quantity: { type: Number, required: true },
@@ -42,17 +42,16 @@ const PurchaseRecordSchema: Schema = new Schema({
   unitPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
   currency: { type: String, required: true, default: 'USD' },
-  paymentMethod: { type: String, required: true },
-  paymentStatus: { type: String, required: true },
+  paymentMethod: { type: String, required: true, enum: ['Netbanking', 'UPI', 'Card', 'N/A', 'Other'] },
+  paymentStatus: { type: String, required: true, enum: ['Free', 'Paid', 'Pending'] },
   vendorId: { type: String, required: true },
   vendorName: { type: String, required: true },
   orderStatus: { type: String, required: true },
-  planPurchaseDate: { type: Date, default: Date.now },
-  planActivationDate: { type: Date, required: true },
-  planExpiryDate: { type: Date, required: true },
-  autoRenewal: { type: Boolean, default: false },
-  remarks: { type: String, default: '' },
-});
+  planPurchaseDate: { type: Date, required: true, default: Date.now },
+  planActivationDate: { type: Date, required: true, default: Date.now },
+  planExpiryDate: {type: Date, required: true, default: () => new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),},
+  autoRenewal: { type: Boolean, default: false }, 
+  remarks: { type: String},});
 
 // Explicitly specify the collection name 'purchaseRecords'
 export default mongoose.models.PurchaseRecord ||
