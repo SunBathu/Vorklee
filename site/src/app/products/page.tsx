@@ -1,5 +1,4 @@
 'use client';
-
 import Image from 'next/image';
 import { useMessage } from '@/context/MessageContext';
 import { useSession, signIn } from 'next-auth/react';
@@ -9,6 +8,8 @@ import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
 
 interface Purchase {
+  appName: string;
+  planName: string;
   planTiers: string;
 }
 
@@ -18,7 +19,7 @@ export default function ProductsPage() {
   const [showFreeTrialMessage, setShowFreeTrialMessage] = useState(false);
   const { setMessage } = useMessage(); // Correctly destructure setMessage
 
-  const handleFreeTrialClick = async () => {
+const handleFreeTrialClick = async (appName: string, planName: string, planTiers: string) => {
     if (!session) {
       signIn('google');
       return;
@@ -28,13 +29,13 @@ export default function ProductsPage() {
       const response = await fetch('/api/purchases');
       const data: Purchase[] = await response.json();
       const freeTrialExists = data.some(
-        (purchase) => purchase.planTiers === 'Free Trial',
+        (purchase) => purchase.appName === appName && purchase.planName === planName && purchase.planTiers === planTiers,
       );
 
       if (freeTrialExists) {
-        setMessage('You have already registered for a Free Trial.');
+        setMessage('You have already registered for a Free Trial for this app and plan.');
       } else {
-        router.push(`/payment?plan=basic&planTiers=Free Trial`);
+        router.push(`/payment?plan=${planName}&planTiers=Free Trial&appName=${appName}`);
       }
     } catch (error) {
       console.error('Error fetching purchases:', error);
@@ -42,11 +43,11 @@ export default function ProductsPage() {
     }
   };
 
-  const handleGoToPayment = (planType: string, planTiers: string) => {
+  const handleGoToPayment = (appName: string, planName: string, planTiers: string) => {
     if (!session) {
       signIn('google');
     } else {
-      router.push(`/payment?plan=${planType}&planTiers=${planTiers}`);
+      router.push(`/payment?appName=${appName}&planName=${planName}&planTiers=${planTiers}`);
     }
   };
 
@@ -104,10 +105,10 @@ export default function ProductsPage() {
 
           {/* Plans */}
           <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-            {renderPlanCard(
+            {renderPlanCard( 
               `${constants.PLAN_BASIC} Plan`,
               'basic',
-              productPricing["Screenshot Capture App"].basic["Individual"],
+              productPricing[appname].[plan].[Tiers],
               '$4',
               '$2',
               '$8',
@@ -371,22 +372,22 @@ export default function ProductsPage() {
 }
 
 function renderPlanCard(
-  title: string,
-  planType: 'basic' | 'standard' | 'premium',
-  priceDisplay: string,
+  appName: string,
+  planName: typeof constants.PLAN_BASIC | typeof constants.PLAN_STANDARD | typeof constants.PLAN_PREMIUM,  
   priceIndividualOld: string,
   priceIndividualNew: string,
   priceCompanyOld: string,
   priceCompanyNew: string,
   features: string[],
-  handleGoToPayment: (planType: string, planTiers: string) => void,
-  handleFreeTrialClick: () => void, // Add this parameter
+  handleGoToPayment: (appName: string, planName: string, planTiers: string) => void,
+  handleFreeTrialClick: (appName: string, planName: string, planTiers: string) => void, 
 ) {
-  const gradientColors = {
-    basic: 'from-purple-500 to-purple-300',
-    standard: 'from-blue-500 to-blue-300',
-    premium: 'from-pink-500 to-pink-300',
-  };
+
+const gradientColors = {
+  [constants.PLAN_BASIC]: 'from-purple-500 to-purple-300',
+  [constants.PLAN_STANDARD]: 'from-blue-500 to-blue-300',
+  [constants.PLAN_PREMIUM]: 'from-pink-500 to-pink-300',
+};
 
   return (
     <div className="bg-white rounded-2xl shadow-lg overflow-hidden text-center flex flex-col relative">
@@ -395,19 +396,19 @@ function renderPlanCard(
       </div>
 
       <div
-        className={`bg-gradient-to-r ${gradientColors[planType]} relative py-16`}
+        className={`bg-gradient-to-r ${gradientColors[planName]} relative py-16`}
       >
         <h3 className="text-2xl font-bold text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/4">
-          {title}
+          `${planName} Plan`,
         </h3>
       </div>
 
       <div className="relative mt-4 mb-6">
         <div
-          className={`w-24 h-24 rounded-full flex items-center justify-center drop-shadow-2xl mx-auto bg-gradient-to-r ${gradientColors[planType]} border-4 border-white shadow-lg`}
+          className={`w-24 h-24 rounded-full flex items-center justify-center drop-shadow-2xl mx-auto bg-gradient-to-r ${gradientColors[planName]} border-4 border-white shadow-lg`}
         >
           <p className="text-4xl font-extrabold text-white drop-shadow-md">
-            {priceDisplay}
+            {priceIndividualNew}
           </p>
         </div>
       </div>
@@ -420,14 +421,14 @@ function renderPlanCard(
         </ul>
         <div className="flex flex-col space-y-2">
           <button
-            onClick={handleFreeTrialClick}
+            onClick={() => handleFreeTrialClick(appName, planName, constants.TIER_TRIAL)}
             className="bg-gradient-to-r from-gray-500 to-gray-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
           >
             Free Trial $0
           </button>
 
           <button
-            onClick={() => handleGoToPayment(planType, 'Individual')}
+            onClick={() => handleGoToPayment(appName, planName, constants.TIER_INDIVIDUAL)}
             className="bg-gradient-to-r from-green-500 to-green-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
           >
             Buy for - Individual{' '}
@@ -438,7 +439,7 @@ function renderPlanCard(
           </button>
 
           <button
-            onClick={() => handleGoToPayment(planType, 'Company')}
+            onClick={() => handleGoToPayment(appName, planName, constants.TIER_COMPANY)}
             className="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 px-6 rounded-full border-2 border-blue-400 shadow-lg hover:from-blue-600 hover:to-blue-800 hover:scale-105 transition-transform duration-300 ease-in-out"
           >
             Buy for - Company{' '}
@@ -448,6 +449,7 @@ function renderPlanCard(
             <span className="font-extrabold">{priceCompanyNew}</span>
           </button>
         </div>
+
         <p className="text-gray-500 mt-6 text-sm">
           All plans pricing are per month (billed annually).
         </p>

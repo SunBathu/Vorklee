@@ -7,12 +7,12 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
 
 export async function POST(req: Request) {
   try {
-    const { planType, name, mobile, country, usage } = await req.json();
+    const { planName, name, mobile, country, usage } = await req.json();
 
     // Define pricing IDs from your Stripe Dashboard
-    const priceId = planType === 'free' ? null : 'price_12345';
+    const priceId = planName === 'free' ? null : 'price_12345';
 
-    if (planType === 'free') {
+    if (planName === 'free') {
       return NextResponse.json({ url: '/products' });
     }
 

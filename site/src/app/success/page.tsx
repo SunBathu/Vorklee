@@ -8,12 +8,10 @@ import { capitalizeFirstLetter } from '@/utils/stringUtils';
 import { constants as bufferConstants } from 'buffer';
 import * as constants from '@/utils/constants';
 
-
 export default function SuccessPage() {
   const searchParams = useSearchParams();
-  const productName =
-  searchParams.get('productName') || constants.APP_SCREENSHOT_CAPTURE; // Default product
-  const planType = searchParams.get('plan'); // e.g., 'basic', 'standard', 'premium'
+  const productName = searchParams.get('productName') || constants.APP_CAPTURE; // Default product
+  const planName = searchParams.get('plan'); // e.g., 'basic', 'standard', 'premium'
   const planTiers = searchParams.get('planTiers'); // e.g., 'Free Trial', 'Individual', 'Company'
   const quantity = Number(searchParams.get('quantity')) || 1;
   const router = useRouter();
@@ -29,26 +27,25 @@ export default function SuccessPage() {
         const purchaseId = `PUR-${Date.now()}`;
 
         const product = {
-          id: productName === constants.APP_SCREENSHOT_CAPTURE ? 1 : 2,
+          id: productName === constants.APP_CAPTURE ? 1 : 2,
           name: productName,
           version: 1,
         };
 
-        // Define valid types for planType and planTiers
-        // type PlanType = 'basic' | 'standard' | 'premium';
-        type PlanType =
+        // Define valid types for planName and planTiers
+        // type planName = 'basic' | 'standard' | 'premium';
+        type planName =
           | typeof constants.PLAN_BASIC
           | typeof constants.PLAN_STANDARD
           | typeof constants.PLAN_PREMIUM;
         // type PlanTier = 'Free Trial' | 'Individual' | 'Company';
         type PlanTier =
-          | typeof constants.PLAN_TIER_FREE_TRIAL
-          | typeof constants.PLAN_TIER_INDIVIDUAL
-          | typeof constants.PLAN_TIER_COMPANY;
+          | typeof constants.TIER_TRIAL
+          | typeof constants.TIER_INDIVIDUAL
+          | typeof constants.TIER_COMPANY;
 
-        const validPlanType = (planType as PlanType) || constants.PLAN_BASIC;
-        const validPlanTier =
-          (planTiers as PlanTier) || constants.PLAN_TIER_FREE_TRIAL; // Ensure this reflects the correct selection
+        const validPlanType = (planName as planName) || constants.PLAN_BASIC;
+        const validPlanTier = (planTiers as PlanTier) || constants.TIER_TRIAL; // Ensure this reflects the correct selection
 
         // Ensure safe access to productPricing using type assertion
         const productPricingForProduct =
@@ -64,7 +61,7 @@ export default function SuccessPage() {
 
         const currentDate = new Date();
         const planExpiryDate = new Date(currentDate);
-        if (validPlanTier === constants.PLAN_TIER_FREE_TRIAL) {
+        if (validPlanTier === constants.TIER_TRIAL) {
           planExpiryDate.setDate(currentDate.getDate() + 3);
         } else {
           planExpiryDate.setFullYear(currentDate.getFullYear() + 1);
@@ -89,9 +86,9 @@ export default function SuccessPage() {
             totalPrice,
             currency: constants.CURRENCY_USD,
             paymentMethod:
-              validPlanTier === constants.PLAN_TIER_FREE_TRIAL ? 'N/A' : 'Card',
+              validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
             paymentStatus:
-              validPlanTier === constants.PLAN_TIER_FREE_TRIAL
+              validPlanTier === constants.TIER_TRIAL
                 ? 'Free'
                 : constants.STATUS_PAID,
             vendorId: 'VL1',
@@ -100,11 +97,10 @@ export default function SuccessPage() {
             planPurchaseDate: currentDate,
             planActivationDate: currentDate,
             planExpiryDate,
-            autoRenewal: validPlanTier !== constants.PLAN_TIER_FREE_TRIAL,
+            autoRenewal: validPlanTier !== constants.TIER_TRIAL,
             remarks: 'Nil',
           }),
         });
-
 
         console.log(' Sending data:', {
           purchaseId,
@@ -122,9 +118,9 @@ export default function SuccessPage() {
           totalPrice,
           currency: constants.CURRENCY_USD,
           paymentMethod:
-            validPlanTier === constants.PLAN_TIER_FREE_TRIAL ? 'N/A' : 'Card',
+            validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
           paymentStatus:
-            validPlanTier === constants.PLAN_TIER_FREE_TRIAL
+            validPlanTier === constants.TIER_TRIAL
               ? 'Free'
               : constants.STATUS_PAID,
           vendorId: 'VL1',
@@ -133,7 +129,7 @@ export default function SuccessPage() {
           planPurchaseDate: currentDate,
           planActivationDate: currentDate,
           planExpiryDate,
-          autoRenewal: validPlanTier !== constants.PLAN_TIER_FREE_TRIAL,
+          autoRenewal: validPlanTier !== constants.TIER_TRIAL,
           remarks: 'Nil',
         });
 
@@ -154,20 +150,20 @@ export default function SuccessPage() {
     };
 
     createPurchaseRecord();
-  }, [productName, planType, planTiers, quantity, session]);
+  }, [productName, planName, planTiers, quantity, session]);
 
   return (
     <div className="h-screen flex items-center justify-center bg-white">
       <div className="max-w-lg mx-auto p-6 bg-white rounded-lg shadow-md text-center">
         <h1 className="text-3xl font-bold mb-4">
-          {planTiers === constants.PLAN_TIER_FREE_TRIAL
+          {planTiers === constants.TIER_TRIAL
             ? 'Registration Successful!'
             : 'Payment Successful!'}
         </h1>
         <p className="mb-6">
-          {planTiers === constants.PLAN_TIER_FREE_TRIAL
+          {planTiers === constants.TIER_TRIAL
             ? 'Thank you for registering for the Free Plan.'
-            : `Thank you for purchasing the ${planType} Plan.`}
+            : `Thank you for purchasing the ${planName} Plan.`}
         </p>
         <p className="mb-6">Go to the purchases page to download the app.</p>
         <button
