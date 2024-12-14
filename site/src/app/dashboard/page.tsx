@@ -76,7 +76,7 @@ export default function Dashboard() {
 
         <button
           onClick={() =>
-            showMessage('This is a blinking alert!', {vanishTime: 0, blinkCount: 4, buttons: 'okCancel', icon: 'alert'})
+            showMessage('This is a blinking alert!', {vanishTime: 0, blinkCount: 2, buttons: 'okCancel', icon: 'alert'})
           }
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
