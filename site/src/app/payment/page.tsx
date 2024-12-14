@@ -54,16 +54,11 @@ export default function PaymentPage() {
 
           <div className="text-3xl font-bold text-blue-600">{planName}</div>
 
-          <div className="text-3xl font-bold text-blue-600 border-b-8 border-blue-400 pb-2">
+          <div className="text-3xl font-bold text-blue-600 border-b-8 border-blue-400 pb-4">
             {planTiers}
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex items-center justify-between">
-              <label className="font-semibold">Unit Price:</label>
-              <span className="text-gray-700">${unitPrice.toFixed(2)}</span>
-            </div>
-
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-6">
             <div className="flex items-center justify-between">
               <label className="font-semibold">
                 Number of computers for installation:
@@ -95,6 +90,10 @@ export default function PaymentPage() {
             </div>
 
             <div className="flex items-center justify-between">
+              <label className="font-semibold">Unit Price:</label>
+              <span className="text-gray-700">${unitPrice.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between">
               <label className="font-semibold">Total Price:</label>
               <span className="text-gray-700">${totalPrice.toFixed(2)}</span>
             </div>
@@ -116,6 +115,7 @@ export default function PaymentPage() {
                 >
                   terms and conditions
                 </a>
+                <span> (MUST READ BEFORE USE)</span>
               </span>
             </label>
             {errors.agreement && (
