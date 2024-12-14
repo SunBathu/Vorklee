@@ -5,6 +5,7 @@ import { ReactNode } from 'react';
 import Sidebar from '@/components/Sidebar';
 import TopMessageBar from '@/components/TopMessageBar';
 import { MessageProvider } from '@/context/MessageContext';
+ 
 import './globals.css';
 
 export default function RootLayout({ children }: { children: ReactNode }) {

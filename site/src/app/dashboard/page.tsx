@@ -3,6 +3,7 @@
 import { useSession, signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useMessage } from '@/context/MessageContext';
 
 interface Settings {
   storageUsed: number;
@@ -17,6 +18,12 @@ export default function Dashboard() {
   const router = useRouter();
   const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { message, options, showMessage } = useMessage();
+
+
+
+
+
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -66,6 +73,15 @@ export default function Dashboard() {
           <h2 className="font-semibold">Capture Interval</h2>
           <p>{settings.captureInterval || 0} seconds</p>
         </div>
+
+        <button
+          onClick={() =>
+            showMessage('This is a blinking alert!', {vanishTime: 0, blinkCount: 4, buttons: 'okCancel', icon: 'alert'})
+          }
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Show Blinking Message
+        </button>
       </div>
     </div>
   );

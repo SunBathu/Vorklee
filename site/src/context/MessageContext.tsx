@@ -2,73 +2,74 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 
-interface MessageContextType {
-  message: string | null;
-  setMessage: (msg: string | null) => void;
+interface MessageOptions {
+  vanishTime?: number;
+  blinkCount?: number;
+  buttons?: 'okCancel' | 'yesNo';
+  icon?: 'alert' | 'important' | 'danger';
+  onClose?: () => void;
 }
+
+interface MessageContextType {
+  message: string;
+  options: MessageOptions | null;
+  showMessage: (msg: string, options?: MessageOptions) => void;
+  clearMessage: () => void;
+}
+
+const DEFAULT_MESSAGE = 'Keep an eye here for alerts.';
 
 const MessageContext = createContext<MessageContextType | undefined>(undefined);
 
 export const MessageProvider = ({ children }: { children: ReactNode }) => {
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string>(DEFAULT_MESSAGE);
+  const [options, setOptions] = useState<MessageOptions | null>(null);
+
+  const showMessage = (msg: string, opts?: MessageOptions) => {
+    setMessage(msg);
+    setOptions(opts || null);
+
+    // Handle vanish time
+    if (opts?.vanishTime) {
+      setTimeout(() => {
+        clearMessage();
+      }, opts.vanishTime);
+    }
+
+    // Handle blinking
+    if (opts?.blinkCount && opts.blinkCount > 0) {
+      let blinkCountdown = opts.blinkCount * 2; // Each blink has an on/off cycle
+      const blinkInterval = setInterval(() => {
+        setMessage((prev) => (prev ? '' : msg));
+        blinkCountdown--;
+
+        if (blinkCountdown === 0) {
+          clearInterval(blinkInterval);
+          setMessage(msg); // Ensure the message is shown at the end
+        }
+      }, 200);
+    }
+  };
+
+  const clearMessage = () => {
+    setMessage(DEFAULT_MESSAGE);
+    setOptions(null);
+    if (options?.onClose) options.onClose();
+  };
 
   return (
-    <MessageContext.Provider value={{ message, setMessage }}>
+    <MessageContext.Provider
+      value={{ message, options, showMessage, clearMessage }}
+    >
       {children}
     </MessageContext.Provider>
   );
 };
 
-export const useMessage = (
-  options?: {
-    vanishTime?: number;
-    buttons?: 'okCancel' | 'yesNo';
-    icon?: 'alert' | 'important' | 'danger';
-    onClose?: () => void;
-  },
-) => {
+export const useMessage = () => {
   const context = useContext(MessageContext);
   if (!context) {
     throw new Error('useMessage must be used within a MessageProvider');
   }
-
-  const { setMessage } = context;
-
-  const showMessage = (
-    message: string,
-    blinkCount: number = 0,
-    options?: {
-      vanishTime?: number;
-      buttons?: 'okCancel' | 'yesNo';
-      icon?: 'alert' | 'important' | 'danger';
-      onClose?: () => void;
-    },
-  ) => {
-    setMessage(message);
-    if (options?.vanishTime === 0) {
-      // show till user closed
-    } else if (options?.vanishTime) {
-      setTimeout(() => setMessage(null), options.vanishTime);
-    }
-    if (options?.onClose) {
-      setTimeout(options.onClose, options.vanishTime);
-    }
-    if (blinkCount > 0) {
-      const blinkTimeout = 200;
-      let blinkCountdown = blinkCount;
-      const blinkInterval = setInterval(() => {
-        setMessage((prev) => (prev ? null : message));
-        if (--blinkCountdown === 0) {
-          clearInterval(blinkInterval);
-          setMessage(message);
-        }
-      }, blinkTimeout);
-    }
-  };
-
-
-  return {
-    ...context,
-    showMessage,
-  };
+  return context;
 };

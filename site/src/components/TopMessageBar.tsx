@@ -1,26 +1,42 @@
 'use client';
 
+import React from 'react';
 import { useMessage } from '@/context/MessageContext';
 
 export default function TopMessageBar() {
-  const { message, setMessage } = useMessage();
+  const { message, options, clearMessage } = useMessage();
 
   return (
-    <div className="w-full bg-blue-600 text-white p-4 shadow-md h-14 flex items-center">
-      <div className="flex items-center w-full max-w-4xl">
-        {message ? (
-          <>
+    <div className="h-12 bg-blue-600 text-white flex items-center px-4 shadow-md">
+      <div className="flex items-center space-x-4">
+        {/* Buttons */}
+        {options?.buttons === 'okCancel' && (
+          <div className="flex space-x-2">
             <button
-              onClick={() => setMessage(null)}
-              className="mr-4 text-white bg-red-500 hover:bg-red-600 rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-md transition-transform transform hover:scale-110"
+              onClick={clearMessage}
+              className="px-6 py-1 bg-green-500 text-white rounded"
             >
-              &times;
+              OK
             </button>
-            <span className="text-lg">{message}</span>
-          </>
-        ) : (
-          <span className="text-gray-400">No notifications</span>
+            <button
+              onClick={clearMessage}
+              className="px-2 py-1 bg-red-500 text-white rounded"
+            >
+              Cancel
+            </button>
+          </div>
         )}
+
+        {/* Separator */}
+        {options?.buttons && <div className="h-2 w-0 bg-blue-600"></div>}
+
+        {/* Icon Display */}
+        {options?.icon === 'alert' && <span className="mr-1">⚠️</span>}
+        {options?.icon === 'important' && <span className="mr-1">❗</span>}
+        {options?.icon === 'danger' && <span className="mr-1">🚨</span>}
+
+        {/* Message */}
+        <span className="text-white text-xl">{message}</span>
       </div>
     </div>
   );

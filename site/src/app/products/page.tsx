@@ -1,11 +1,11 @@
 'use client';
 import Image from 'next/image';
-import { useMessage } from '@/context/MessageContext';
 import { useSession, signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
+import { useMessage } from '@/context/MessageContext';
 
 interface Purchase {
   appName: string;
@@ -17,7 +17,7 @@ export default function ProductsPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [showFreeTrialMessage, setShowFreeTrialMessage] = useState(false);
-  const { setMessage } = useMessage(); // Correctly destructure setMessage
+const { message, options, showMessage } = useMessage();
 
 const handleFreeTrialClick = async (appName: string, planName: string, planTiers: string) => {
     if (!session) {
@@ -33,7 +33,7 @@ const handleFreeTrialClick = async (appName: string, planName: string, planTiers
       );
 
       if (freeTrialExists) {
-        setMessage('You have already registered for a Free Trial for this app and plan.');
+        showMessage('You have already registered for a Free Trial for this app and plan.', {vanishTime: 3000, blinkCount: 5, buttons: 'okCancel', icon: 'alert'})
       } else {
         router.push(`/payment?plan=${planName}&planTiers=Free Trial&appName=${appName}`);
       }
