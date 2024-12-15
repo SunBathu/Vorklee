@@ -12,20 +12,23 @@ type GlobalSettings = {
 };
 
 type PcSetting = {
+  uuid: string;
+  adminEmail: string;
   nickName: string;
+  planName: string;
   fileType: string;
   videoLength?: number;
   captureInterval: number;
   fileQuality: number;
-  storageUsed: string;
   clientNotificationInterval: string;
   lastCapturedTime: string;
-  captureEnabled: boolean;
+  storageUsed: string;
+  captureEnabledByAdmin: boolean;
 };
 
 export default function SettingsPage() {
-   const { message, options, showMessage } = useMessage();
-  // State for Global Settings
+  const { showMessage } = useMessage();
+
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
@@ -33,11 +36,7 @@ export default function SettingsPage() {
       'AmongAll: Delete the oldest folders among all users (Recommended)',
   });
 
-  // State for PC-Specific Settings
   const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
-
-  // State for error and success messages
-  const [error, setError] = useState<string | null>(null);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [helpContent, setHelpContent] = useState<string>('');
@@ -51,8 +50,16 @@ export default function SettingsPage() {
     const fetchSettings = async () => {
       try {
         const response = await fetch('/api/screenshotsettings');
-        if (!response.ok)
-          throw new Error('Failed to fetch screenshot settings.');
+        if (!response.ok) {
+          showMessage('Failed to fetch screenshot settings.', {
+            vanishTime: 0,
+            blinkCount: 2,
+            buttons: 'okCancel',
+            icon: 'alert',
+          });
+          setIsLoading(false);
+          return;
+        }
 
         const data = await response.json();
         setGlobalSettings({
@@ -62,10 +69,34 @@ export default function SettingsPage() {
             data.globalSettings?.whichFoldersToDeleteWhenStorageFull ||
             'AmongAll: Delete the oldest folders among all users (Recommended)',
         });
+
         setPcSettingsList(data.pcSettings || []);
-      } catch (err: any) {
-        setError(err.message);
-      } finally {
+
+        // Display fetched pcSettings in the message box
+        const pcSettingsString = data.pcSettings
+          .map(
+            (pc, index) =>
+              `${index + 1}. ${pc.nickName} | ${pc.fileType} | Interval: ${
+                pc.captureInterval
+              }s | Quality: ${pc.fileQuality}%`
+          )
+          .join('\n');
+
+        showMessage(pcSettingsString, {
+          vanishTime: 0,
+          blinkCount: 2,
+          buttons: 'okCancel',
+          icon: 'alert',
+        });
+
+        setIsLoading(false);
+      } catch (err) {
+        showMessage('An unexpected error occurred. Please try again later.', {
+          vanishTime: 0,
+          blinkCount: 2,
+          buttons: 'okCancel',
+          icon: 'danger',
+        });
         setIsLoading(false);
       }
     };
@@ -74,25 +105,16 @@ export default function SettingsPage() {
   }, []);
 
   // Handle Global Settings Change
-  const handleGlobalChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
+  const handleGlobalChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setGlobalSettings((prev) => ({ ...prev, [name]: value }));
     setIsModified(true);
   };
 
   // Handle PC-Specific Settings Change
-  const handlePcChange = (
-    index: number,
-    field: keyof PcSetting,
-    value: string | number | boolean,
-  ) => {
+  const handlePcChange = (index: number, field: keyof PcSetting, value: string | number | boolean) => {
     const updatedSettings = [...pcSettingsList];
-    updatedSettings[index] = {
-      ...updatedSettings[index],
-      [field]: value,
-    };
+    updatedSettings[index] = { ...updatedSettings[index], [field]: value };
     setPcSettingsList(updatedSettings);
     setIsModified(true);
   };
@@ -100,14 +122,15 @@ export default function SettingsPage() {
   // Save Settings to the Server
   const handleSave = async () => {
     try {
-      const response = await fetch('/api/settings', {
+      const response = await fetch('/api/screenshotsettings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ globalSettings, pcSettingsList }),
       });
 
       if (!response.ok) {
-        showMessage('Failed to save settings.', {
+        const errorText = await response.text();
+        showMessage(`Failed to save settings: ${errorText}`, {
           vanishTime: 0,
           blinkCount: 3,
           buttons: 'okCancel',
@@ -122,6 +145,7 @@ export default function SettingsPage() {
         buttons: 'okCancel',
         icon: 'important',
       });
+      setIsModified(false);
     } catch (error) {
       showMessage('An unexpected error occurred. Please try again.', {
         vanishTime: 0,
@@ -132,35 +156,11 @@ export default function SettingsPage() {
     }
   };
 
-  const handleDelete = (nickName: string, index: number) => {
-    const userInput = prompt(
-      `Type the nickname "${nickName}" to confirm deletion:`,
-    );
-
-    if (userInput === nickName) {
-      const updatedSettings = pcSettingsList.filter((_, i) => i !== index);
-      setPcSettingsList(updatedSettings);
-      showMessage('Client with nickname "${nickName}" has been deleted.', {
-        vanishTime: 0,
-        blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
-      });
-    } else {
-            showMessage('Deletion cancelled or nickname did not match.', {
-              vanishTime: 0,
-              blinkCount: 2,
-              buttons: 'okCancel',
-              icon: 'danger',
-            });
- 
-    }
-  };
-
   // Render Loading State
   if (isLoading) {
     return <p>Loading...</p>;
   }
+ 
 
   // Render Settings Page
   return (
@@ -177,13 +177,12 @@ export default function SettingsPage() {
         </button>
       </div>
 
-
       {/* Global Settings Form */}
       <form>
         <div className="form-container">
           <div className="form-fields">
             <div className="form-group-inline">
-              <label>Storage Path:</label>
+              <label className="text-xl font-bold">Storage Path:</label>
               <input
                 type="text"
                 name="storagePath"
@@ -193,7 +192,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="form-group-inline">
-              <label>Date Format for Daily Folders:</label>
+              <label className="text-xl font-bold">
+                Date Format for Daily Folders:
+              </label>
               <select
                 name="dateFormat"
                 value={globalSettings.dateFormat}
@@ -206,7 +207,9 @@ export default function SettingsPage() {
             </div>
 
             <div className="form-group-inline">
-              <label>Which folders to delete when storage full:</label>
+              <label className="text-xl font-bold">
+                Which folders to delete when storage full:
+              </label>
               <select
                 name="whichFoldersToDeleteWhenStorageFull"
                 value={globalSettings.whichFoldersToDeleteWhenStorageFull}
@@ -318,113 +321,115 @@ export default function SettingsPage() {
                   </th>
                 </tr>
               </thead>
-              <tbody>
-                
-                  {pcSettingsList.map((pc, index) => (
-                    <tr key={index}>
-                      <td>
-                        <input
-                          type="text"
-                          value={pc.nickName}
-                          onChange={(e) =>
-                            handlePcChange(index, 'nickName', e.target.value)
-                          }
-                        />
-                      </td>
-                      <td>
-                        <select
-                          value={pc.fileType}
-                          onChange={(e) =>
-                            handlePcChange(index, 'fileType', e.target.value)
-                          }
-                        >
-                          <option value="image">Image</option>
-                          <option value="video">Video</option>
-                        </select>
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          value={pc.fileType === 'video' ? pc.videoLength : ''}
-                          onChange={(e) =>
-                            handlePcChange(index, 'videoLength', e.target.value)
-                          }
-                          disabled={pc.fileType !== 'video'}
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          value={pc.captureInterval}
-                          onChange={(e) =>
-                            handlePcChange(
-                              index,
-                              'captureInterval',
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </td>
-                      <td>
-                        <input
-                          type="number"
-                          value={pc.fileQuality}
-                          onChange={(e) =>
-                            handlePcChange(index, 'fileQuality', e.target.value)
-                          }
-                        />
-                      </td>
-                      <td>{pc.storageUsed}</td>
-                      <td>
-                        <select
-                          value={pc.clientNotificationInterval}
-                          onChange={(e) =>
-                            handlePcChange(
-                              index,
-                              'clientNotificationInterval',
-                              e.target.value,
-                            )
-                          }
-                        >
-                          <option value="Do not show screenshot uploaded message to the client">
-                            NoUploadMsg
-                          </option>
-                          <option value="Show daily once">DailyOnce</option>
-                          <option value="Show weekly once">WeeklyOnce</option>
-                          <option value="Show monthly once">MonthlyOnce</option>
-                          <option value="Show Quarterly once">
-                            QuarterlyOnce
-                          </option>
-                          <option value="Show Half Yearly once">
-                            HalfYearlyOnce
-                          </option>
-                          <option value="Show Yearly once">YearlyOnce</option>
-                        </select>
-                      </td>
-                      <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={pc.captureEnabled}
-                          onChange={(e) =>
-                            handlePcChange(
-                              index,
-                              'captureEnabled',
-                              e.target.checked,
-                            )
-                          }
-                        />
-                      </td>
-                      <td>
-                        <FontAwesomeIcon
-                          icon={faTrash}
-                          className="delete-icon"
-                          onClick={() => handleDelete(pc.nickName, index)}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                 
+              <tbody
+                style={{
+                  fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'",
+                }}
+              >
+                {pcSettingsList.map((pc, index) => (
+                  <tr key={index}>
+                    <td>
+                      <input
+                        type="text"
+                        value={pc.nickName}
+                        onChange={(e) =>
+                          handlePcChange(index, 'nickName', e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>
+                      <select
+                        value={pc.fileType}
+                        onChange={(e) =>
+                          handlePcChange(index, 'fileType', e.target.value)
+                        }
+                      >
+                        <option value="image">Image</option>
+                        <option value="video">Video</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={pc.fileType === 'video' ? pc.videoLength : ''}
+                        onChange={(e) =>
+                          handlePcChange(index, 'videoLength', e.target.value)
+                        }
+                        disabled={pc.fileType !== 'video'}
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={pc.captureInterval}
+                        onChange={(e) =>
+                          handlePcChange(
+                            index,
+                            'captureInterval',
+                            e.target.value,
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="number"
+                        value={pc.fileQuality}
+                        onChange={(e) =>
+                          handlePcChange(index, 'fileQuality', e.target.value)
+                        }
+                      />
+                    </td>
+                    <td>{pc.storageUsed}</td>
+                    <td>
+                      <select
+                        value={pc.clientNotificationInterval}
+                        onChange={(e) =>
+                          handlePcChange(
+                            index,
+                            'clientNotificationInterval',
+                            e.target.value,
+                          )
+                        }
+                      >
+                        <option value="Do not show screenshot uploaded message to the client">
+                          NoUploadMsg
+                        </option>
+                        <option value="Show daily once">DailyOnce</option>
+                        <option value="Show weekly once">WeeklyOnce</option>
+                        <option value="Show monthly once">MonthlyOnce</option>
+                        <option value="Show Quarterly once">
+                          QuarterlyOnce
+                        </option>
+                        <option value="Show Half Yearly once">
+                          HalfYearlyOnce
+                        </option>
+                        <option value="Show Yearly once">YearlyOnce</option>
+                      </select>
+                    </td>
+                    <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={pc.captureEnabledByAdmin}
+                        onChange={(e) =>
+                          handlePcChange(
+                            index,
+                            'captureEnabledByAdmin',
+                            e.target.checked,
+                          )
+                        }
+                      />
+                    </td>
+                    <td>
+                      <FontAwesomeIcon
+                        icon={faTrash}
+                        className="delete-icon"
+                        onClick={() => handleDelete(pc.nickName, index)}
+                      />
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

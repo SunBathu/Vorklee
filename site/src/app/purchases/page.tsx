@@ -67,7 +67,7 @@ export default function PurchasesPage() {
               <th className="p-3">Auto Renewal</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody style={{ fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'" }}>
             {purchases.map((purchase) => {
               const {
                 afterDiscountUnitPriceInUSD,

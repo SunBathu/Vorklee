@@ -18,5 +18,8 @@ const nextConfig = {
     ],
   },
 };
+module.exports = {
+  productionBrowserSourceMaps: true,
+};
 
 module.exports = nextConfig;
