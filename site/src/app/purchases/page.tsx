@@ -1,7 +1,9 @@
 'use client';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faDownload, faRedo } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 import { calculatePricesToUSD } from '@/utils/pricing';
 
 interface PurchaseRecord {
@@ -26,11 +28,17 @@ interface PurchaseRecord {
 
 export default function PurchasesPage() {
   const [purchases, setPurchases] = useState<PurchaseRecord[]>([]);
+  const { data: session } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchPurchases = async () => {
+      if (!session?.user?.email) return;
+
       try {
-        const response = await fetch('/api/purchases');
+        const response = await fetch(
+          `/api/purchases?adminEmail=${session.user.email}`,
+        );
         const data = await response.json();
         setPurchases(data);
       } catch (error) {
@@ -39,7 +47,17 @@ export default function PurchasesPage() {
     };
 
     fetchPurchases();
-  }, []);
+  }, [session]);
+
+  const handleRenew = (
+    appName: string,
+    planName: string,
+    planTiers: string,
+  ) => {
+    router.push(
+      `/payment?appName=${appName}&planName=${planName}&planTiers=${planTiers}`,
+    );
+  };
 
   return (
     <div className="p-8 bg-gradient-to-br from-gray-100 to-gray-300">
@@ -65,9 +83,14 @@ export default function PurchasesPage() {
               <th className="p-3">Activation Date</th>
               <th className="p-3">Expiry Date</th>
               <th className="p-3">Auto Renewal</th>
+              <th className="p-3">Renew</th>
             </tr>
           </thead>
-          <tbody style={{ fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'" }}>
+          <tbody
+            style={{
+              fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'",
+            }}
+          >
             {purchases.map((purchase) => {
               const {
                 afterDiscountUnitPriceInUSD,
@@ -133,6 +156,20 @@ export default function PurchasesPage() {
                     }`}
                   >
                     {purchase.autoRenewal ? 'Yes' : 'No'}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() =>
+                        handleRenew(
+                          purchase.appName,
+                          purchase.planName,
+                          purchase.planTiers,
+                        )
+                      }
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                    >
+                      <FontAwesomeIcon icon={faRedo} className="mr-2" /> Renew
+                    </button>
                   </td>
                 </tr>
               );

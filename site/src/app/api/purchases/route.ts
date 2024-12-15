@@ -1,50 +1,20 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import PurchaseRecord from '@/models/PurchaseRecords';
 import dbConnect from '@/utils/dbConnect';
 
-export async function POST(request: Request) {
+export async function GET(req: NextRequest) {
+  await dbConnect();
+
   try {
-    await dbConnect();
-    const data = await request.json();
-    console.log('Received data:', data);
-
-    const newPurchase = new PurchaseRecord(data);
-    await newPurchase.save();
-
-    return NextResponse.json(
-      { message: 'Purchase record created successfully' },
-      { status: 201 },
-    );
-  } catch (error) {
-    console.error('Error saving purchase record:', error);
-
-    if (error instanceof Error) {
-      // Handle generic errors
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    } else if (
-      typeof error === 'object' &&
-      error !== null &&
-      'errors' in error
-    ) {
-      // Handle Mongoose validation errors
+    const adminEmail = req.nextUrl.searchParams.get('adminEmail');
+    if (!adminEmail) {
       return NextResponse.json(
-        { error: 'Validation Error', details: error.errors },
+        { message: 'Admin email is required' },
         { status: 400 },
       );
-    } else {
-      // Handle unknown errors
-      return NextResponse.json(
-        { error: 'Unknown error occurred' },
-        { status: 500 },
-      );
     }
-  }
-}
 
-export async function GET() {
-  await dbConnect();
-  try {
-    const records = await PurchaseRecord.find();
+    const records = await PurchaseRecord.find({ adminEmail });
     return NextResponse.json(records);
   } catch (error) {
     console.error('Error fetching purchase records:', error);

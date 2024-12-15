@@ -9,12 +9,16 @@ import { useMessage } from '@/context/MessageContext';
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { showMessage } = useMessage();
+ const [helpContent, setHelpContent] = useState<string>('');
 
+ const showHelp = (content: string) => {
+   setHelpContent(content);
+ };
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
     whichFoldersToDeleteWhenStorageFull:
-      'AmongAll: Delete the oldest folders among all users (Recommended)',
+      'AmongAll',
   });
 
   const [pcSettingsList, setPcSettingsList] = useState([]);
@@ -61,8 +65,28 @@ export default function SettingsPage() {
 
   // Save Settings to the Server
   const handleSave = async () => {
-    if (!session?.user?.email) return;
-
+    if (!session?.user?.email) {
+      showMessage('You are not logged in. Please log in to save settings.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        buttons: 'okCancel',
+        icon: 'alert',
+      });
+      return;
+    }
+    // Validate that each PC setting has a uuid
+    if (pcSettingsList.some((pcSetting) => !pcSetting.uuid)) {
+      showMessage(
+        'One or more PC settings are missing a UUID. You have to re-install the app in that PC.',
+        {
+          vanishTime: 0,
+          blinkCount: 2,
+          buttons: 'okCancel',
+          icon: 'danger',
+        },
+      );
+      return;
+    }
     try {
       const response = await fetch('/api/screenshotsettings', {
         method: 'POST',
@@ -73,6 +97,16 @@ export default function SettingsPage() {
           adminEmail: session.user.email,
         }),
       });
+
+      if (response.status === 404) {
+        showMessage('You have not purchased. So, you cannot save settings.', {
+          vanishTime: 0,
+          blinkCount: 3,
+          buttons: 'okCancel',
+          icon: 'danger',
+        });
+        return;
+      }
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -101,6 +135,7 @@ export default function SettingsPage() {
       });
     }
   };
+
 
   // Handle Global Settings Change
   const handleGlobalChange = (
@@ -154,6 +189,11 @@ export default function SettingsPage() {
                 name="storagePath"
                 value={globalSettings.storagePath}
                 onChange={handleGlobalChange}
+                onClick={() =>
+                  showHelp(
+                    'If you do not know how to set this, just leave it. We will take care and it will be set automatically.',
+                  )
+                }
               />
             </div>
 
@@ -165,6 +205,11 @@ export default function SettingsPage() {
                 name="dateFormat"
                 value={globalSettings.dateFormat}
                 onChange={handleGlobalChange}
+                onClick={() =>
+                  showHelp(
+                    'If you are confused about this setting, just leave it. We will take care and it will be set automatically.',
+                  )
+                }
               >
                 <option value="DD-MM-YYYY">DD-MM-YYYY</option>
                 <option value="YYYY-MM-DD">YYYY-MM-DD</option>
@@ -180,14 +225,14 @@ export default function SettingsPage() {
                 name="whichFoldersToDeleteWhenStorageFull"
                 value={globalSettings.whichFoldersToDeleteWhenStorageFull}
                 onChange={handleGlobalChange}
+                onClick={() =>
+                  showHelp(
+                    'If you do not know how to set this, just leave it. We will take care and it will be set automatically.',
+                  )
+                }
               >
-                <option value="Delete-the-oldest-folders-among-all-users-(Recommended)">
-                  AmongAll: Delete the oldest folders among all users
-                  (Recommended)
-                </option>
-                <option value="Delete-the-oldest-folder-for-the-current-user">
-                  SameUser: Delete the oldest folder from the same user
-                </option>
+                <option value="AmongAll">AmongAll</option>
+                <option value="SameUser">SameUser</option>
               </select>
             </div>
           </div>
