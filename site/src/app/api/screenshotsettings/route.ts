@@ -95,3 +95,36 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  await dbConnect();
+
+  try {
+    const uuid = req.nextUrl.searchParams.get('uuid');
+    const adminEmail = req.nextUrl.searchParams.get('adminEmail');
+
+    if (!uuid || !adminEmail) {
+      return NextResponse.json(
+        { message: 'UUID and admin email are required' },
+        { status: 400 },
+      );
+    }
+
+    const result = await SysFileSettingsPCWise.deleteOne({ uuid, adminEmail });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { message: 'No matching record found to delete' },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({ message: 'Record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting record:', error);
+    return NextResponse.json(
+      { message: 'Failed to delete record' },
+      { status: 500 },
+    );
+  }
+}

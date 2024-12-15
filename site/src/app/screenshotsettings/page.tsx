@@ -6,14 +6,26 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
 
+type PcSetting = {
+  uuid: string;
+  adminEmail: string;
+  nickName: string;
+  planName: string;
+  fileType: string;
+  videoLength?: number;
+  captureInterval: number;
+  fileQuality: number;
+  clientNotificationInterval: string;
+  lastCapturedTime: string;
+  storageUsed: string;
+  captureEnabledByAdmin: boolean;
+};
+
 export default function SettingsPage() {
   const { data: session } = useSession();
   const { showMessage } = useMessage();
- const [helpContent, setHelpContent] = useState<string>('');
+  const [helpContent, setHelpContent] = useState<string>('');
 
- const showHelp = (content: string) => {
-   setHelpContent(content);
- };
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
@@ -21,9 +33,13 @@ export default function SettingsPage() {
       'AmongAll',
   });
 
-  const [pcSettingsList, setPcSettingsList] = useState([]);
+  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+
+ const showHelp = (content: string) => {
+   setHelpContent(content);
+ };
 
   // Fetch Settings on Load
   useEffect(() => {
@@ -136,6 +152,62 @@ export default function SettingsPage() {
     }
   };
 
+const handleDelete = async (uuid: string, nickName: string) => {
+  const userInput = prompt(
+    `Type the nickname "${nickName}" to confirm deletion:`,
+  );
+
+  if (userInput !== nickName) {
+    showMessage('Deletion cancelled or nickname did not match.', {
+      vanishTime: 0,
+      blinkCount: 2,
+      buttons: 'okCancel',
+      icon: 'danger',
+    });
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `/api/screenshotsettings?uuid=${uuid}&adminEmail=${session?.user?.email}`,
+      {
+        method: 'DELETE',
+      },
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      showMessage(`Failed to delete client: ${errorText}`, {
+        vanishTime: 0,
+        blinkCount: 3,
+        buttons: 'okCancel',
+        icon: 'danger',
+      });
+      return;
+    }
+
+    // Update the local state to remove the deleted record
+    const updatedSettings = pcSettingsList.filter((pc) => pc.uuid !== uuid);
+    setPcSettingsList(updatedSettings);
+
+    showMessage(
+      `Client with nickname "${nickName}" has been deleted successfully.`,
+      {
+        vanishTime: 3000,
+        blinkCount: 0,
+        buttons: 'okCancel',
+        icon: 'important',
+      },
+    );
+  } catch (error) {
+    showMessage('An unexpected error occurred. Please try again.', {
+      vanishTime: 0,
+      blinkCount: 2,
+      buttons: 'okCancel',
+      icon: 'danger',
+    });
+  }
+};
 
   // Handle Global Settings Change
   const handleGlobalChange = (
@@ -257,7 +329,7 @@ export default function SettingsPage() {
                   <th
                     onClick={() =>
                       showHelp(
-                        'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive.', 
+                        'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive.',
                       )
                     }
                   >
@@ -436,7 +508,7 @@ export default function SettingsPage() {
                       <FontAwesomeIcon
                         icon={faTrash}
                         className="delete-icon"
-                        onClick={() => handleDelete(pc.nickName, index)}
+                        onClick={() => handleDelete(pc.uuid, pc.nickName)}
                       />
                     </td>
                   </tr>
