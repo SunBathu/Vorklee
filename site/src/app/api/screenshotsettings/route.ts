@@ -3,12 +3,20 @@ import dbConnect from '@/utils/dbConnect';
 import SysFileSettingsGlobal from '@/models/SysFileSettingsGlobal';
 import SysFileSettingsPCWise from '@/models/SysFileSettingsPCWise';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   await dbConnect();
 
   try {
-    const globalSettings = await SysFileSettingsGlobal.findOne({});
-    const pcSettings = await SysFileSettingsPCWise.find({});
+    const adminEmail = req.nextUrl.searchParams.get('adminEmail');
+    if (!adminEmail) {
+      return NextResponse.json(
+        { message: 'Admin email is required' },
+        { status: 400 },
+      );
+    }
+
+    const globalSettings = await SysFileSettingsGlobal.findOne({ adminEmail });
+    const pcSettings = await SysFileSettingsPCWise.find({ adminEmail });
 
     return NextResponse.json({ globalSettings, pcSettings });
   } catch (error: any) {
@@ -23,20 +31,29 @@ export async function POST(req: NextRequest) {
   await dbConnect();
 
   try {
-    const { globalSettings, pcSettingsList } = await req.json();
+    const { globalSettings, pcSettingsList, adminEmail } = await req.json();
 
-    // Update global settings
-    await SysFileSettingsGlobal.updateOne({}, globalSettings, { upsert: true });
+    if (!adminEmail) {
+      return NextResponse.json(
+        { message: 'Admin email is required' },
+        { status: 400 },
+      );
+    }
 
-    // Update PC settings concurrently
+    // Update global settings for the logged-in admin
+    await SysFileSettingsGlobal.updateOne(
+      { adminEmail },
+      { ...globalSettings, adminEmail },
+      { upsert: true },
+    );
+
+    // Update PC settings concurrently for the logged-in admin
     await Promise.all(
       pcSettingsList.map((pcSetting: any) =>
         SysFileSettingsPCWise.updateOne(
-          { pcName: pcSetting.pcName },
-          pcSetting,
-          {
-            upsert: true,
-          },
+          { uuid: pcSetting.uuid, adminEmail },
+          { ...pcSetting, adminEmail },
+          { upsert: true },
         ),
       ),
     );

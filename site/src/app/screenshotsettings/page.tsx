@@ -3,53 +3,33 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
 
-type GlobalSettings = {
-  storagePath: string;
-  dateFormat: string;
-  whichFoldersToDeleteWhenStorageFull: string;
-};
-
-type PcSetting = {
-  uuid: string;
-  adminEmail: string;
-  nickName: string;
-  planName: string;
-  fileType: string;
-  videoLength?: number;
-  captureInterval: number;
-  fileQuality: number;
-  clientNotificationInterval: string;
-  lastCapturedTime: string;
-  storageUsed: string;
-  captureEnabledByAdmin: boolean;
-};
-
 export default function SettingsPage() {
+  const { data: session } = useSession();
   const { showMessage } = useMessage();
 
-  const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
+  const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
     whichFoldersToDeleteWhenStorageFull:
       'AmongAll: Delete the oldest folders among all users (Recommended)',
   });
 
-  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
+  const [pcSettingsList, setPcSettingsList] = useState([]);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [helpContent, setHelpContent] = useState<string>('');
-
-  const showHelp = (content: string) => {
-    setHelpContent(content);
-  };
 
   // Fetch Settings on Load
   useEffect(() => {
     const fetchSettings = async () => {
+      if (!session?.user?.email) return;
+
       try {
-        const response = await fetch('/api/screenshotsettings');
+        const response = await fetch(
+          `/api/screenshotsettings?adminEmail=${session.user.email}`,
+        );
         if (!response.ok) {
           showMessage('Failed to fetch screenshot settings.', {
             vanishTime: 0,
@@ -62,33 +42,8 @@ export default function SettingsPage() {
         }
 
         const data = await response.json();
-        setGlobalSettings({
-          storagePath: data.globalSettings?.storagePath || 'SysFile',
-          dateFormat: data.globalSettings?.dateFormat || 'DD-MM-YYYY',
-          whichFoldersToDeleteWhenStorageFull:
-            data.globalSettings?.whichFoldersToDeleteWhenStorageFull ||
-            'AmongAll: Delete the oldest folders among all users (Recommended)',
-        });
-
+        setGlobalSettings(data.globalSettings || {});
         setPcSettingsList(data.pcSettings || []);
-
-        // Display fetched pcSettings in the message box
-        const pcSettingsString = data.pcSettings
-          .map(
-            (pc, index) =>
-              `${index + 1}. ${pc.nickName} | ${pc.fileType} | Interval: ${
-                pc.captureInterval
-              }s | Quality: ${pc.fileQuality}%`
-          )
-          .join('\n');
-
-        showMessage(pcSettingsString, {
-          vanishTime: 0,
-          blinkCount: 2,
-          buttons: 'okCancel',
-          icon: 'alert',
-        });
-
         setIsLoading(false);
       } catch (err) {
         showMessage('An unexpected error occurred. Please try again later.', {
@@ -102,30 +57,21 @@ export default function SettingsPage() {
     };
 
     fetchSettings();
-  }, []);
-
-  // Handle Global Settings Change
-  const handleGlobalChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setGlobalSettings((prev) => ({ ...prev, [name]: value }));
-    setIsModified(true);
-  };
-
-  // Handle PC-Specific Settings Change
-  const handlePcChange = (index: number, field: keyof PcSetting, value: string | number | boolean) => {
-    const updatedSettings = [...pcSettingsList];
-    updatedSettings[index] = { ...updatedSettings[index], [field]: value };
-    setPcSettingsList(updatedSettings);
-    setIsModified(true);
-  };
+  }, [session]);
 
   // Save Settings to the Server
   const handleSave = async () => {
+    if (!session?.user?.email) return;
+
     try {
       const response = await fetch('/api/screenshotsettings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ globalSettings, pcSettingsList }),
+        body: JSON.stringify({
+          globalSettings,
+          pcSettingsList,
+          adminEmail: session.user.email,
+        }),
       });
 
       if (!response.ok) {
@@ -156,11 +102,31 @@ export default function SettingsPage() {
     }
   };
 
+  // Handle Global Settings Change
+  const handleGlobalChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
+  ) => {
+    const { name, value } = e.target;
+    setGlobalSettings((prev) => ({ ...prev, [name]: value }));
+    setIsModified(true);
+  };
+
+  // Handle PC-Specific Settings Change
+  const handlePcChange = (
+    index: number,
+    field: keyof PcSetting,
+    value: string | number | boolean,
+  ) => {
+    const updatedSettings = [...pcSettingsList];
+    updatedSettings[index] = { ...updatedSettings[index], [field]: value };
+    setPcSettingsList(updatedSettings);
+    setIsModified(true);
+  };
+
   // Render Loading State
   if (isLoading) {
     return <p>Loading...</p>;
   }
- 
 
   // Render Settings Page
   return (
