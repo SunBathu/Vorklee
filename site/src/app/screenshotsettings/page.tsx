@@ -257,7 +257,7 @@ export default function SettingsPage() {
                   <th
                     onClick={() =>
                       showHelp(
-                        'The PC/User name, which you can easily remeber.',
+                        'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive.', 
                       )
                     }
                   >
