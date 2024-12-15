@@ -5,8 +5,10 @@ import { useForm, Controller } from 'react-hook-form';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { productPricing } from '@/utils/pricing';
-import { constants as bufferConstants } from 'buffer';
 import * as constants from '@/utils/constants';
+import { useMessage } from '@/context/MessageContext';
+// import { constants as bufferConstants } from 'buffer';
+
 
 interface FormData {
   agreement: boolean;
@@ -14,6 +16,7 @@ interface FormData {
 }
 
 export default function PaymentPage() {
+  const { message, options, showMessage } = useMessage();
   const {
     register,
     handleSubmit,
@@ -30,7 +33,7 @@ export default function PaymentPage() {
 
   useEffect(() => {
     if (appName && planName && planTiers) {
-      const price = productPricing[appName]?.[planName]?.[planTiers];
+      const price = (productPricing[appName]?.[planName]?.[planTiers] ?? 0) * constants.DISCOUNT_RATE;
       setUnitPrice(price);
       setTotalPrice(price);
     }
@@ -41,7 +44,11 @@ export default function PaymentPage() {
   };
 
   const onSubmit = async (data: FormData) => {
-    router.push(
+      if (appName === constants.APP_NOTES) {
+         showMessage('The Notes App is currently unavailable for purchase. Please check back later.', {vanishTime: 0, blinkCount: 2, buttons: 'okCancel', icon: 'important'})
+         return;
+      }
+      router.push(
       `/success?appName=${appName}&planName=${planName}&planTiers=${planTiers}&quantity=${data.quantity}`,
     );
   };
@@ -52,10 +59,13 @@ export default function PaymentPage() {
         <div className="space-y-2">
           <div className="text-4xl font-bold text-blue-600">{appName}</div>
 
-          <div className="text-3xl font-bold text-blue-600">{planName}</div>
+          <div className="text-3xl font-bold text-blue-600">
+            {planName} <span className="normal-case">Plan</span>
+          </div>
 
           <div className="text-3xl font-bold text-blue-600 border-b-8 border-blue-400 pb-4">
-            {planTiers}
+            <span className="normal-case">[For</span> {planTiers}
+            <span className="normal-case">]</span>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-6">
@@ -90,11 +100,15 @@ export default function PaymentPage() {
             </div>
 
             <div className="flex items-center justify-between">
-              <label className="font-semibold">Unit Price:</label>
+              <label className="font-semibold">
+                Unit Price (After Discount):
+              </label>
               <span className="text-gray-700">${unitPrice.toFixed(2)}</span>
             </div>
             <div className="flex items-center justify-between">
-              <label className="font-semibold">Total Price:</label>
+              <label className="font-semibold">
+                Total Price (After Discount):
+              </label>
               <span className="text-gray-700">${totalPrice.toFixed(2)}</span>
             </div>
 

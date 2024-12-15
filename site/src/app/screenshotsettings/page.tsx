@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
+import { useMessage } from '@/context/MessageContext';
 
 type GlobalSettings = {
   storagePath: string;
@@ -23,6 +24,7 @@ type PcSetting = {
 };
 
 export default function SettingsPage() {
+   const { message, options, showMessage } = useMessage();
   // State for Global Settings
   const [globalSettings, setGlobalSettings] = useState<GlobalSettings>({
     storagePath: 'SysFile',
@@ -38,7 +40,6 @@ export default function SettingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [message, setMessage] = useState<string | null>(null);
   const [helpContent, setHelpContent] = useState<string>('');
 
   const showHelp = (content: string) => {
@@ -105,14 +106,29 @@ export default function SettingsPage() {
         body: JSON.stringify({ globalSettings, pcSettingsList }),
       });
 
-      if (response.ok) {
-        setIsModified(false);
-        setMessage('Settings saved successfully.');
-      } else {
-        throw new Error('Failed to save settings.');
+      if (!response.ok) {
+        showMessage('Failed to save settings.', {
+          vanishTime: 0,
+          blinkCount: 3,
+          buttons: 'okCancel',
+          icon: 'danger',
+        });
+        return;
       }
-    } catch (err: any) {
-      setError(err.message);
+
+      showMessage('Settings saved successfully.', {
+        vanishTime: 3000,
+        blinkCount: 0,
+        buttons: 'okCancel',
+        icon: 'important',
+      });
+    } catch (error) {
+      showMessage('An unexpected error occurred. Please try again.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        buttons: 'okCancel',
+        icon: 'danger',
+      });
     }
   };
 
@@ -124,9 +140,20 @@ export default function SettingsPage() {
     if (userInput === nickName) {
       const updatedSettings = pcSettingsList.filter((_, i) => i !== index);
       setPcSettingsList(updatedSettings);
-      alert(`Client with nickname "${nickName}" has been deleted.`);
+      showMessage('Client with nickname "${nickName}" has been deleted.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        buttons: 'okCancel',
+        icon: 'danger',
+      });
     } else {
-      alert('Deletion cancelled or nickname did not match.');
+            showMessage('Deletion cancelled or nickname did not match.', {
+              vanishTime: 0,
+              blinkCount: 2,
+              buttons: 'okCancel',
+              icon: 'danger',
+            });
+ 
     }
   };
 
@@ -149,8 +176,7 @@ export default function SettingsPage() {
           Save Settings
         </button>
       </div>
-      {message && <p className="success">{message}</p>}
-      {error && <p className="error">{error}</p>}
+
 
       {/* Global Settings Form */}
       <form>
@@ -212,7 +238,7 @@ export default function SettingsPage() {
             {/* Table with Clickable Headers */}
             <div className="table-container"></div>{' '}
             <table>
-              <thead>
+              <thead className="text-lg font-semibold">
                 <tr>
                   <th
                     onClick={() =>
@@ -293,110 +319,112 @@ export default function SettingsPage() {
                 </tr>
               </thead>
               <tbody>
-                {pcSettingsList.map((pc, index) => (
-                  <tr key={index}>
-                    <td>
-                      <input
-                        type="text"
-                        value={pc.nickName}
-                        onChange={(e) =>
-                          handlePcChange(index, 'nickName', e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>
-                      <select
-                        value={pc.fileType}
-                        onChange={(e) =>
-                          handlePcChange(index, 'fileType', e.target.value)
-                        }
-                      >
-                        <option value="image">Image</option>
-                        <option value="video">Video</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={pc.fileType === 'video' ? pc.videoLength : ''}
-                        onChange={(e) =>
-                          handlePcChange(index, 'videoLength', e.target.value)
-                        }
-                        disabled={pc.fileType !== 'video'}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={pc.captureInterval}
-                        onChange={(e) =>
-                          handlePcChange(
-                            index,
-                            'captureInterval',
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={pc.fileQuality}
-                        onChange={(e) =>
-                          handlePcChange(index, 'fileQuality', e.target.value)
-                        }
-                      />
-                    </td>
-                    <td>{pc.storageUsed}</td>
-                    <td>
-                      <select
-                        value={pc.clientNotificationInterval}
-                        onChange={(e) =>
-                          handlePcChange(
-                            index,
-                            'clientNotificationInterval',
-                            e.target.value,
-                          )
-                        }
-                      >
-                        <option value="Do not show screenshot uploaded message to the client">
-                          NoUploadMsg
-                        </option>
-                        <option value="Show daily once">DailyOnce</option>
-                        <option value="Show weekly once">WeeklyOnce</option>
-                        <option value="Show monthly once">MonthlyOnce</option>
-                        <option value="Show Quarterly once">
-                          QuarterlyOnce
-                        </option>
-                        <option value="Show Half Yearly once">
-                          HalfYearlyOnce
-                        </option>
-                        <option value="Show Yearly once">YearlyOnce</option>
-                      </select>
-                    </td>
-                    <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={pc.captureEnabled}
-                        onChange={(e) =>
-                          handlePcChange(
-                            index,
-                            'captureEnabled',
-                            e.target.checked,
-                          )
-                        }
-                      />
-                    </td>
-                    <td>
-                      <FontAwesomeIcon
-                        icon={faTrash}
-                        className="delete-icon"
-                        onClick={() => handleDelete(pc.nickName, index)}
-                      />
-                    </td>
-                  </tr>
-                ))}
+                
+                  {pcSettingsList.map((pc, index) => (
+                    <tr key={index}>
+                      <td>
+                        <input
+                          type="text"
+                          value={pc.nickName}
+                          onChange={(e) =>
+                            handlePcChange(index, 'nickName', e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>
+                        <select
+                          value={pc.fileType}
+                          onChange={(e) =>
+                            handlePcChange(index, 'fileType', e.target.value)
+                          }
+                        >
+                          <option value="image">Image</option>
+                          <option value="video">Video</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={pc.fileType === 'video' ? pc.videoLength : ''}
+                          onChange={(e) =>
+                            handlePcChange(index, 'videoLength', e.target.value)
+                          }
+                          disabled={pc.fileType !== 'video'}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={pc.captureInterval}
+                          onChange={(e) =>
+                            handlePcChange(
+                              index,
+                              'captureInterval',
+                              e.target.value,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          value={pc.fileQuality}
+                          onChange={(e) =>
+                            handlePcChange(index, 'fileQuality', e.target.value)
+                          }
+                        />
+                      </td>
+                      <td>{pc.storageUsed}</td>
+                      <td>
+                        <select
+                          value={pc.clientNotificationInterval}
+                          onChange={(e) =>
+                            handlePcChange(
+                              index,
+                              'clientNotificationInterval',
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="Do not show screenshot uploaded message to the client">
+                            NoUploadMsg
+                          </option>
+                          <option value="Show daily once">DailyOnce</option>
+                          <option value="Show weekly once">WeeklyOnce</option>
+                          <option value="Show monthly once">MonthlyOnce</option>
+                          <option value="Show Quarterly once">
+                            QuarterlyOnce
+                          </option>
+                          <option value="Show Half Yearly once">
+                            HalfYearlyOnce
+                          </option>
+                          <option value="Show Yearly once">YearlyOnce</option>
+                        </select>
+                      </td>
+                      <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={pc.captureEnabled}
+                          onChange={(e) =>
+                            handlePcChange(
+                              index,
+                              'captureEnabled',
+                              e.target.checked,
+                            )
+                          }
+                        />
+                      </td>
+                      <td>
+                        <FontAwesomeIcon
+                          icon={faTrash}
+                          className="delete-icon"
+                          onClick={() => handleDelete(pc.nickName, index)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                 
               </tbody>
             </table>
           </div>

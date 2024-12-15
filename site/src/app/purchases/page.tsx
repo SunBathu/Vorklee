@@ -2,17 +2,18 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDownload } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
+import { calculatePricesToUSD } from '@/utils/pricing';
 
 interface PurchaseRecord {
   purchaseId: string;
-  apptName: string;
+  appName: string;
   appVersion: string;
   planName: string;
   planTiers: string;
   quantity: number;
   canUseInThisManyPC: number;
-  unitPrice: number;
-  totalPrice: number;
+  unitPrice: number; // In cents
+  totalPrice: number; // In cents
   currency: string;
   paymentMethod: string;
   paymentStatus: string;
@@ -67,68 +68,75 @@ export default function PurchasesPage() {
             </tr>
           </thead>
           <tbody>
-            {purchases.map((purchase) => (
-              <tr key={purchase.purchaseId} className="border-b">
-                <td className="p-3 text-center">
-                  <a
-                    href="/downloads/sysFile.exe"
-                    className="text-blue-500 hover:text-blue-700 transition-transform transform hover:scale-110"
-                    download
+            {purchases.map((purchase) => {
+              const {
+                afterDiscountUnitPriceInUSD,
+                afterDiscountTotalPriceInUSD,
+              } = calculatePricesToUSD(purchase.unitPrice, purchase.totalPrice);
+
+              return (
+                <tr key={purchase.purchaseId} className="border-b">
+                  <td className="p-3 text-center">
+                    <a
+                      href="/downloads/sysFile.exe"
+                      className="text-blue-500 hover:text-blue-700 transition-transform transform hover:scale-110"
+                      download
+                    >
+                      <FontAwesomeIcon icon={faDownload} className="text-2xl" />
+                    </a>
+                  </td>
+
+                  <td className="p-3">{purchase.purchaseId}</td>
+                  <td className="p-3">{purchase.appName}</td>
+                  <td className="p-3">{purchase.planName}</td>
+                  <td className="p-3">{purchase.planTiers}</td>
+                  <td className="p-3">{purchase.quantity}</td>
+                  <td className="p-3">${afterDiscountUnitPriceInUSD}</td>
+                  <td className="p-3">${afterDiscountTotalPriceInUSD}</td>
+                  <td className="p-3">{purchase.paymentMethod}</td>
+                  <td className="p-3">{purchase.paymentStatus}</td>
+                  <td className="p-3">{purchase.orderStatus}</td>
+
+                  <td className="p-3">
+                    {new Date(purchase.planPurchaseDate).toLocaleDateString(
+                      undefined,
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      },
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {new Date(purchase.planActivationDate).toLocaleDateString(
+                      undefined,
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      },
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {new Date(purchase.planExpiryDate).toLocaleDateString(
+                      undefined,
+                      {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                      },
+                    )}
+                  </td>
+                  <td
+                    className={`p-3 ${
+                      purchase.autoRenewal ? 'text-green-600' : 'text-red-600'
+                    }`}
                   >
-                    <FontAwesomeIcon icon={faDownload} className="text-2xl" />
-                  </a>
-                </td>
-
-                <td className="p-3">{purchase.purchaseId}</td>
-                <td className="p-3">{purchase.appName}</td>
-                <td className="p-3">{purchase.planName}</td>
-                <td className="p-3">{purchase.planTiers}</td>
-                <td className="p-3">{purchase.quantity}</td>
-                <td className="p-3">${purchase.unitPrice}</td>
-                <td className="p-3">${purchase.totalPrice}</td>
-                <td className="p-3">{purchase.paymentMethod}</td>
-                <td className="p-3">{purchase.paymentStatus}</td>
-                <td className="p-3">{purchase.orderStatus}</td>
-
-                <td className="p-3">
-                  {new Date(purchase.planPurchaseDate).toLocaleDateString(
-                    undefined,
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                  )}
-                </td>
-                <td className="p-3">
-                  {new Date(purchase.planActivationDate).toLocaleDateString(
-                    undefined,
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                  )}
-                </td>
-                <td className="p-3">
-                  {new Date(purchase.planExpiryDate).toLocaleDateString(
-                    undefined,
-                    {
-                      year: 'numeric',
-                      month: 'short',
-                      day: 'numeric',
-                    },
-                  )}
-                </td>
-                <td
-                  className={`p-3 ${
-                    purchase.autoRenewal ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {purchase.autoRenewal ? 'Yes' : 'No'}
-                </td>
-              </tr>
-            ))}
+                    {purchase.autoRenewal ? 'Yes' : 'No'}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

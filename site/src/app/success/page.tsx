@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { productPricing } from '@/utils/pricing';
+import { productPricing, calculatePricesToCents } from '@/utils/pricing';
 import * as constants from '@/utils/constants';
 
 export default function SuccessPage() {
@@ -45,7 +45,15 @@ export default function SuccessPage() {
 
         const unitPrice =
           productPricingForProduct[validPlanType]?.[validPlanTier] ?? 0;
-        const totalPrice = unitPrice * quantity;
+
+        const {
+          afterDiscountUnitPriceInCents,
+          afterDiscountTotalPriceInCents,
+        } = calculatePricesToCents(
+          unitPrice,
+          quantity,
+          constants.DISCOUNT_RATE,
+        );
 
         const currentDate = new Date();
         const planExpiryDate = new Date(currentDate);
@@ -54,7 +62,6 @@ export default function SuccessPage() {
         } else {
           planExpiryDate.setFullYear(currentDate.getFullYear() + 1);
         }
-
 
         console.log('Data being sent to API:', {
           purchaseId,
@@ -68,8 +75,8 @@ export default function SuccessPage() {
           planTiers: validPlanTier,
           quantity,
           canUseInThisManyPC: quantity,
-          unitPrice,
-          totalPrice,
+          afterDiscountUnitPriceInCents,
+          afterDiscountTotalPriceInCents,
           currency: constants.CURRENCY_USD,
           paymentMethod:
             validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
@@ -87,7 +94,6 @@ export default function SuccessPage() {
           remarks: 'Nil',
         });
 
-        
         const response = await fetch('/api/purchases', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -103,8 +109,8 @@ export default function SuccessPage() {
             planTiers: validPlanTier,
             quantity: quantity || 1,
             canUseInThisManyPC: quantity || 1,
-            unitPrice: unitPrice || 0,
-            totalPrice: totalPrice || 0,
+            unitPrice: afterDiscountUnitPriceInCents || 0,
+            totalPrice: afterDiscountTotalPriceInCents || 0,
             currency: constants.CURRENCY_USD,
             paymentMethod:
               validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
@@ -122,7 +128,6 @@ export default function SuccessPage() {
             remarks: 'Nil',
           }),
         });
-
 
         if (!response.ok) {
           const errorText = await response.text();

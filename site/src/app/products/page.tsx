@@ -273,6 +273,11 @@ function renderPlanCard(
     [constants.PLAN_STANDARD]: 'from-blue-500 to-blue-300',
     [constants.PLAN_PREMIUM]: 'from-pink-500 to-pink-300',
   };
+    
+  const beforeDiscountIndividualPrice =
+    discountedIndividualPrice / (1 - constants.DISCOUNT_RATE);
+  const beforeDiscountCompanyPrice =
+    discountedCompanyPrice / (1 - constants.DISCOUNT_RATE);
 
   return (
     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden text-center flex flex-col relative transform transition-transform hover:scale-105 pb-10">
@@ -312,25 +317,39 @@ function renderPlanCard(
           onClick={() =>
             handleFreeTrialClick(appName, planName, constants.TIER_TRIAL)
           }
-          className="bg-gray-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
+          className="text-lg bg-gray-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
         >
           Free Trial $0
         </button>
+
         <button
           onClick={() =>
             handleGoToPayment(appName, planName, constants.TIER_INDIVIDUAL)
           }
-          className="bg-green-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
+          className="text-lg bg-green-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
         >
-          Buy for Individual - ${discountedIndividualPrice}
+          <span>For Individual - </span>
+          <span className="text-xl line-through mr-2 text-gray-300">
+            ${beforeDiscountIndividualPrice}
+          </span>
+          <span className="text-xl font-extrabold">
+            ${discountedIndividualPrice}
+          </span>
         </button>
+
         <button
           onClick={() =>
             handleGoToPayment(appName, planName, constants.TIER_COMPANY)
           }
-          className="bg-blue-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
+          className="text-lg bg-green-500 text-white py-2 rounded-full hover:bg-blue-600 transition shadow-lg"
         >
-          Buy for Company - ${discountedCompanyPrice}
+          <span>For Company - </span>
+          <span className="text-xl line-through mr-2 text-gray-300">
+            ${beforeDiscountCompanyPrice}
+          </span>
+          <span className="text-xl font-extrabold">
+            ${discountedCompanyPrice}
+          </span>
         </button>
       </div>
     </div>

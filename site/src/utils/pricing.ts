@@ -45,7 +45,6 @@ export const productPricing: {
   },
 };
 
-
 export const getDiscountedPrice = (
   price: number,
   discountRate: number,
@@ -56,3 +55,47 @@ export const getDiscountedPrice = (
   return price - price * discountRate;
 };
 
+/**
+ * Calculates the after-discount price and total in cents.
+ *
+ * @param beforeDiscountPrice - The price before the discount (in USD).
+ * @param quantity - The number of items.
+ * @param discountRate - The discount rate (e.g., 0.2 for 20%).
+ * @returns An object containing after-discount price and total in cents.
+ **/
+export function calculatePricesToCents(
+  beforeDiscountPrice: number,
+  quantity: number,
+  discountRate: number,
+) {
+  const afterDiscountPrice = beforeDiscountPrice * (1 - discountRate);
+  const afterDiscountUnitPriceInCents = Math.round(afterDiscountPrice * 100);
+  const afterDiscountTotalPriceInCents =
+    afterDiscountUnitPriceInCents * quantity;
+
+  return {
+    afterDiscountUnitPriceInCents,
+    afterDiscountTotalPriceInCents,
+  };
+}
+
+/**
+ * Converts prices in cents back to USD.
+ *
+ * @param afterDiscountPriceInCents - The after-discount price in cents.
+ * @param afterDiscountTotalInCents - The after-discount total price in cents.
+ * @returns An object containing after-discount price and total in USD.
+ */
+export function calculatePricesToUSD(
+  afterDiscountUnitPriceInCents: number,
+  afterDiscountTotalPriceInCents: number,
+) {
+  const afterDiscountUnitPriceInUSD = (afterDiscountUnitPriceInCents / 100).toFixed(2);
+  const afterDiscountTotalPriceInUSD = (afterDiscountTotalPriceInCents / 100
+  ).toFixed(2);
+
+  return {
+    afterDiscountUnitPriceInUSD: parseFloat(afterDiscountUnitPriceInUSD),
+    afterDiscountTotalPriceInUSD: parseFloat(afterDiscountTotalPriceInUSD),
+  };
+}
