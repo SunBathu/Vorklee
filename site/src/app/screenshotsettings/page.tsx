@@ -39,6 +39,7 @@ export default function SettingsPage() {
 
  const showHelp = (content: string) => {
    setHelpContent(content);
+   
  };
 
   // Fetch Settings on Load
@@ -342,9 +343,9 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       )
                     }
                   >
-                    File Type
+                    Screenshot Upload Type
                   </th>
-                  <th
+                  {/* <th
                     onClick={() =>
                       showHelp(
                         'It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.',
@@ -352,7 +353,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                     }
                   >
                     Video Length
-                  </th>
+                  </th> */}
                   <th
                     onClick={() =>
                       showHelp(
@@ -369,9 +370,11 @@ const handleDelete = async (uuid: string, nickName: string) => {
                   >
                     File Quality
                   </th>
-                  <th onClick={() => showHelp('Storage space occupied in MB.')}>
+
+                  {/* <th onClick={() => showHelp('Storage space occupied in MB.')}>
                     Storage Used
-                  </th>
+                  </th> */}
+
                   <th
                     onClick={() =>
                       showHelp(
@@ -381,11 +384,13 @@ const handleDelete = async (uuid: string, nickName: string) => {
                   >
                     Client PC Notification
                   </th>
-                  <th
+
+                  {/* <th
                     onClick={() => showHelp('Screenshot last captured time).')}
                   >
                     Last Uploaded Time
-                  </th>
+                  </th> */}
+
                   <th
                     onClick={() =>
                       showHelp('Select to capture. Unselect to stop capture.')
@@ -428,10 +433,10 @@ const handleDelete = async (uuid: string, nickName: string) => {
                         }
                       >
                         <option value="image">Image</option>
-                        <option value="video">Video</option>
+                        {/* <option value="video">Video</option> */}
                       </select>
                     </td>
-                    <td>
+                    {/* <td>
                       <input
                         type="number"
                         value={pc.fileType === 'video' ? pc.videoLength : ''}
@@ -440,10 +445,15 @@ const handleDelete = async (uuid: string, nickName: string) => {
                         }
                         disabled={pc.fileType !== 'video'}
                       />
-                    </td>
+                    </td> */}
                     <td>
                       <select
                         value={pc.captureInterval}
+                        onClick={() =>
+                          showHelp(
+                            'The gap between one capture and the next. If you select 60, a screenshot will be captured every 60 seconds.',
+                          )
+                        }
                         onChange={(e) =>
                           handlePcChange(
                             index,
@@ -497,6 +507,9 @@ const handleDelete = async (uuid: string, nickName: string) => {
                     <td>
                       <select
                         value={pc.fileQuality}
+                        onClick={() =>
+                          showHelp('Quality of the file to be captured.')
+                        }
                         onChange={(e) =>
                           handlePcChange(
                             index,
@@ -519,10 +532,16 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       </select>
                     </td>
 
-                    <td>{pc.storageUsed}</td>
+                    {/* <td>{pc.storageUsed}</td> */}
+
                     <td>
                       <select
                         value={pc.clientNotificationInterval}
+                        onClick={() =>
+                          showHelp(
+                            'Alert interval for your clients about captures. Notification will be shown in your client PC based on this interval',
+                          )
+                        }
                         onChange={(e) =>
                           handlePcChange(
                             index,
@@ -531,26 +550,30 @@ const handleDelete = async (uuid: string, nickName: string) => {
                           )
                         }
                       >
-                        <option value="Do not show screenshot uploaded message to the client">
-                          NoUploadMsg
+                        <option value="Do not show any message">
+                          Do not show any message
                         </option>
-                        <option value="Show daily once">DailyOnce</option>
-                        <option value="Show weekly once">WeeklyOnce</option>
-                        <option value="Show monthly once">MonthlyOnce</option>
-                        <option value="Show Quarterly once">
-                          QuarterlyOnce
-                        </option>
-                        <option value="Show Half Yearly once">
-                          HalfYearlyOnce
-                        </option>
-                        <option value="Show Yearly once">YearlyOnce</option>
+                        <option value="At PC Startup">At PC Startup</option>
+                        <option value="Daily Once">Daily Once</option>
+                        <option value="Weekly Once">Weekly Once</option>
+                        <option value="Monthly Once">Monthly Once</option>
+                        <option value="Quarterly Once">Quarterly Once</option>
+                        <option value="HalfYearly Once">HalfYearly Once</option>
+                        <option value="Yearly Once">Yearly Once</option>
                       </select>
                     </td>
-                    <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td>
+
+                    {/* <td>{new Date(pc.lastCapturedTime).toLocaleString()}</td> */}
+
                     <td>
                       <input
                         type="checkbox"
                         checked={pc.captureEnabledByAdmin}
+                        onClick={() =>
+                          showHelp(
+                            'Select to capture. Unselect to stop capture.',
+                          )
+                        }
                         onChange={(e) =>
                           handlePcChange(
                             index,
@@ -558,13 +581,16 @@ const handleDelete = async (uuid: string, nickName: string) => {
                             e.target.checked,
                           )
                         }
+                        style={{ width: '24px', height: '24px' }} // Adjust size as needed
                       />
                     </td>
+
                     <td>
                       <FontAwesomeIcon
                         icon={faTrash}
                         className="delete-icon"
                         onClick={() => handleDelete(pc.uuid, pc.nickName)}
+                        style={{ color: 'red', width: '24px', height: '24px' }} // Adjust size as needed
                       />
                     </td>
                   </tr>

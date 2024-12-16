@@ -4,6 +4,7 @@ import { useSession, signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMessage } from '@/context/MessageContext';
+import Link from 'next/link';
 
 interface Settings {
   storageUsed: number;
@@ -19,11 +20,6 @@ export default function Dashboard() {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [error, setError] = useState<string | null>(null);
   const { message, options, showMessage } = useMessage();
-
-
-
-
-
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -55,13 +51,13 @@ export default function Dashboard() {
     <div className="p-6">
       <h1 className="text-3xl font-bold mb-4">
         Welcome, {session?.user?.name || 'Guest'}
-        {session?.user?.image ? (
+        {session?.user?.image && (
           <img
             src={session.user.image}
             alt="Profile Picture"
             className="h-10 w-10 rounded-full inline ml-2"
           />
-        ) : null}
+        )}
       </h1>
 
       <div className="grid grid-cols-2 gap-6 mb-6">
@@ -73,15 +69,28 @@ export default function Dashboard() {
           <h2 className="font-semibold">Capture Interval</h2>
           <p>{settings.captureInterval || 0} seconds</p>
         </div>
+      </div>
 
-        <button
-          onClick={() =>
-            showMessage('This is a blinking alert!', {vanishTime: 0, blinkCount: 2, buttons: 'okCancel', icon: 'alert'})
-          }
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Show Blinking Message
-        </button>
+      {/* New Button to Agreement Page */}
+      <div className="flex gap-4 mb-6">
+        <Link href="/agreement.html">
+          <button className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
+            View Agreement
+          </button>
+        </Link>
+      </div>
+
+      {/* Placeholder for an Elegant Graph */}
+      <div className="bg-white p-6 rounded shadow-lg">
+        <h2 className="text-xl font-bold mb-4">User Statistics</h2>
+        <div className="h-64">
+          {/* You can replace this with a real graph component */}
+          <img
+            src="/images/graph-placeholder.png"
+            alt="Graph Placeholder"
+            className="w-full h-full object-contain"
+          />
+        </div>
       </div>
     </div>
   );

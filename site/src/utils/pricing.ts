@@ -22,8 +22,8 @@ export const productPricing: {
     },
     [constants.PLAN_PREMIUM]: {
       [constants.TIER_TRIAL]: 0,
-      [constants.TIER_INDIVIDUAL]: 4,
-      [constants.TIER_COMPANY]: 8,
+      [constants.TIER_INDIVIDUAL]: 1,
+      [constants.TIER_COMPANY]: 2,
     },
   },
   [constants.APP_NOTES]: {

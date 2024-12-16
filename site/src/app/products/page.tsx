@@ -180,44 +180,51 @@ const plans: Array<'Basic' | 'Standard' | 'Premium'> = [
             </div>
 
             <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
-              {plans.map((plan) => {
-                const pricing =
-                  productPricing[app.name as keyof typeof productPricing]?.[
-                    plan as 'Basic' | 'Standard' | 'Premium'
-                  ] || {};
-                const individualPrice = pricing[constants.TIER_INDIVIDUAL] || 0;
-                const companyPrice = pricing[constants.TIER_COMPANY] || 0;
+              {plans
+                .filter(                     //Show only premiem plan under Capture App. Notes app will show all 3 plans.
+                  (plan) =>
+                    app.name !== constants.APP_CAPTURE ||
+                    plan === constants.PLAN_PREMIUM,
+                )
+                .map((plan) => {
+                  const pricing =
+                    productPricing[app.name as keyof typeof productPricing]?.[
+                      plan as 'Basic' | 'Standard' | 'Premium'
+                    ] || {};
+                  const individualPrice =
+                    pricing[constants.TIER_INDIVIDUAL] || 0;
+                  const companyPrice = pricing[constants.TIER_COMPANY] || 0;
 
-                const discountedIndividualPrice = getDiscountedPrice(
-                  individualPrice,
-                  constants.DISCOUNT_RATE,
-                );
-                const discountedCompanyPrice = getDiscountedPrice(
-                  companyPrice,
-                  constants.DISCOUNT_RATE,
-                );
+                  const discountedIndividualPrice = getDiscountedPrice(
+                    individualPrice,
+                    constants.DISCOUNT_RATE,
+                  );
+                  const discountedCompanyPrice = getDiscountedPrice(
+                    companyPrice,
+                    constants.DISCOUNT_RATE,
+                  );
 
-                // const features =
-                //   constants.FEATURES[
-                //     app.name as keyof typeof constants.FEATURES
-                //   ][plan as 'Basic' | 'Standard' | 'Premium'];
+                  // const features =
+                  //   constants.FEATURES[
+                  //     app.name as keyof typeof constants.FEATURES
+                  //   ][plan as 'Basic' | 'Standard' | 'Premium'];
 
-                const features = [
-                  ...constants.FEATURES[
-                    app.name as keyof typeof constants.FEATURES
-                  ][plan],
-                ];
+                  const features = [
+                    ...constants.FEATURES[
+                      app.name as keyof typeof constants.FEATURES
+                    ][plan],
+                  ];
 
-                return renderPlanCard(
-                  app.name,
-                  plan as 'Basic' | 'Standard' | 'Premium',
-                  discountedIndividualPrice,
-                  discountedCompanyPrice,
-                  features,
-                  handleGoToPayment,
-                  handleFreeTrialClick,
-                );
-              })}
+                  return renderPlanCard(
+                    app.name,
+                    plan as 'Basic' | 'Standard' | 'Premium',
+                    discountedIndividualPrice,
+                    discountedCompanyPrice,
+                    features,
+                    handleGoToPayment,
+                    handleFreeTrialClick,
+                  );
+                })}
             </div>
           </div>
 

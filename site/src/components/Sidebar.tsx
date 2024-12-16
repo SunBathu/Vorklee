@@ -21,7 +21,13 @@ export default function Sidebar() {
     <div className="h-screen w-64 min-w-[200px] bg-gray-900 text-white flex flex-col justify-between overflow-hidden">
       <div className="p-6 bg-gray-800">
         <Link href="/">
-          <div className="flex items-center cursor-pointer">
+          <div
+            className="flex items-center cursor-pointer"
+            style={{
+              fontSize: '1.5rem',
+              fontFamily: 'Verdana, Consolas, Arial, sans-serif',
+            }}
+          >
             <Image
               src="/images/VorkleeLogo.png"
               alt="Vorklee Logo"
@@ -35,7 +41,10 @@ export default function Sidebar() {
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 p-6 bg-gray-900">
+      <nav
+        className="flex-1 p-6 bg-gray-900"
+        style={{ fontFamily: 'Verdana, Consolas, Arial, sans-serif' }}
+      >
         <ul className="space-y-4">
           <li>
             <Link
@@ -83,12 +92,13 @@ export default function Sidebar() {
           </li>
         </ul>
       </nav>
-      
+
       {/* Contact Us Section */}
       <div className="p-6 bg-gray-900">
         <Link
           href="/contactus"
           className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
+          style={{ fontFamily: 'Verdana, Consolas, Arial, sans-serif' }}
         >
           Contact Us
         </Link>
@@ -101,7 +111,13 @@ export default function Sidebar() {
         onMouseLeave={() => setShowLogout(false)}
       >
         {session ? (
-          <div className="flex items-center space-x-4">
+          <div
+            className="flex items-center space-x-4 flex-wrap"
+            style={{
+              fontSize: '1rem',
+              fontFamily: 'Verdana, Consolas, Arial, sans-serif',
+            }}
+          >
             <Image
               src={session.user?.image || '/images/defaultProfile.png'}
               alt="Profile"
@@ -109,7 +125,9 @@ export default function Sidebar() {
               height={40}
               className="rounded-full cursor-pointer"
             />
-            <span className="cursor-pointer">{session.user?.email}</span>
+            <span className="break-all cursor-pointer">
+              {session.user?.email}
+            </span>
             {showLogout && (
               <button
                 onClick={() => signOut()}
