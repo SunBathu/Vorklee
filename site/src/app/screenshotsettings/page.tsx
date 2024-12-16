@@ -21,26 +21,22 @@ type PcSetting = {
   captureEnabledByAdmin: boolean;
 };
 
+type Plan = {
+  planName: string;
+  availableQuantity: number;
+  assignedQuantity: number;
+};
+
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const { showMessage } = useMessage();
-  const [helpContent, setHelpContent] = useState<string>('');
-
-  const [globalSettings, setGlobalSettings] = useState({
-    storagePath: 'SysFile',
-    dateFormat: 'DD-MM-YYYY',
-    whichFoldersToDeleteWhenStorageFull:
-      'AmongAll',
-  });
-
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [globalSettings, setGlobalSettings] = useState({storagePath: 'SysFile', dateFormat: 'DD-MM-YYYY', whichFoldersToDeleteWhenStorageFull: 'AmongAll', });
   const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
- const showHelp = (content: string) => {
-   setHelpContent(content);
-   
- };
+  const { showMessage } = useMessage();
+  const [helpContent, setHelpContent] = useState<string>('');
+  const showHelp = (content: string) => { setHelpContent(content); };
 
   // Fetch Settings on Load
   useEffect(() => {
@@ -65,6 +61,7 @@ export default function SettingsPage() {
         const data = await response.json();
         setGlobalSettings(data.globalSettings || {});
         setPcSettingsList(data.pcSettings || []);
+        setPlans(data.plans || []);
         setIsLoading(false);
       } catch (err) {
         showMessage('An unexpected error occurred. Please try again later.', {
@@ -79,6 +76,15 @@ export default function SettingsPage() {
 
     fetchSettings();
   }, [session]);
+
+
+  const handlePlanAssignment = (index: number, planName: string) => {
+    const updatedPcSettings = [...pcSettingsList];
+    updatedPcSettings[index] = { ...updatedPcSettings[index], planName };
+    setPcSettingsList(updatedPcSettings);
+    setIsModified(true);
+  };
+
 
   // Save Settings to the Server
   const handleSave = async () => {
@@ -153,62 +159,64 @@ export default function SettingsPage() {
     }
   };
 
-const handleDelete = async (uuid: string, nickName: string) => {
-  const userInput = prompt(
-    `Type the nickname "${nickName}" to confirm deletion:`,
-  );
 
-  if (userInput !== nickName) {
-    showMessage('Deletion cancelled or nickname did not match.', {
-      vanishTime: 0,
-      blinkCount: 2,
-      buttons: 'okCancel',
-      icon: 'danger',
-    });
-    return;
-  }
 
-  try {
-    const response = await fetch(
-      `/api/screenshotsettings?uuid=${uuid}&adminEmail=${session?.user?.email}`,
-      {
-        method: 'DELETE',
-      },
+  const handleDelete = async (uuid: string, nickName: string) => {
+    const userInput = prompt(
+      `Type the nickname "${nickName}" to confirm deletion:`,
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      showMessage(`Failed to delete client: ${errorText}`, {
+    if (userInput !== nickName) {
+      showMessage('Deletion cancelled or nickname did not match.', {
         vanishTime: 0,
-        blinkCount: 3,
+        blinkCount: 2,
         buttons: 'okCancel',
         icon: 'danger',
       });
       return;
     }
 
-    // Update the local state to remove the deleted record
-    const updatedSettings = pcSettingsList.filter((pc) => pc.uuid !== uuid);
-    setPcSettingsList(updatedSettings);
+    try {
+      const response = await fetch(
+        `/api/screenshotsettings?uuid=${uuid}&adminEmail=${session?.user?.email}`,
+        {
+          method: 'DELETE',
+        },
+      );
 
-    showMessage(
-      `Client with nickname "${nickName}" has been deleted successfully.`,
-      {
-        vanishTime: 3000,
-        blinkCount: 0,
+      if (!response.ok) {
+        const errorText = await response.text();
+        showMessage(`Failed to delete client: ${errorText}`, {
+          vanishTime: 0,
+          blinkCount: 3,
+          buttons: 'okCancel',
+          icon: 'danger',
+        });
+        return;
+      }
+
+      // Update the local state to remove the deleted record
+      const updatedSettings = pcSettingsList.filter((pc) => pc.uuid !== uuid);
+      setPcSettingsList(updatedSettings);
+
+      showMessage(
+        `Client with nickname "${nickName}" has been deleted successfully.`,
+        {
+          vanishTime: 3000,
+          blinkCount: 0,
+          buttons: 'okCancel',
+          icon: 'important',
+        },
+      );
+    } catch (error) {
+      showMessage('An unexpected error occurred. Please try again.', {
+        vanishTime: 0,
+        blinkCount: 2,
         buttons: 'okCancel',
-        icon: 'important',
-      },
-    );
-  } catch (error) {
-    showMessage('An unexpected error occurred. Please try again.', {
-      vanishTime: 0,
-      blinkCount: 2,
-      buttons: 'okCancel',
-      icon: 'danger',
-    });
-  }
-};
+        icon: 'danger',
+      });
+    }
+  };
 
   // Handle Global Settings Change
   const handleGlobalChange = (
@@ -329,6 +337,14 @@ const handleDelete = async (uuid: string, nickName: string) => {
                 <tr>
                   <th
                     onClick={() =>
+                      showHelp('Assign the plan which you need for this PC.')
+                    }
+                  >
+                    {' '}
+                    Plan{' '}
+                  </th>
+                  <th
+                    onClick={() =>
                       showHelp(
                         'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive.',
                       )
@@ -343,17 +359,9 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       )
                     }
                   >
-                    Screenshot Upload Type
+                    Screenshot Upload Type{' '}
                   </th>
-                  {/* <th
-                    onClick={() =>
-                      showHelp(
-                        'It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.',
-                      )
-                    }
-                  >
-                    Video Length
-                  </th> */}
+                  {/* <th onClick={() =>showHelp('It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.',)}>Video Length</th> */}
                   <th
                     onClick={() =>
                       showHelp(
@@ -370,11 +378,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                   >
                     File Quality
                   </th>
-
-                  {/* <th onClick={() => showHelp('Storage space occupied in MB.')}>
-                    Storage Used
-                  </th> */}
-
+                  {/* <th onClick={() => showHelp('Storage space occupied in MB.')}>Storage Used</th> */}
                   <th
                     onClick={() =>
                       showHelp(
@@ -384,13 +388,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                   >
                     Client PC Notification
                   </th>
-
-                  {/* <th
-                    onClick={() => showHelp('Screenshot last captured time).')}
-                  >
-                    Last Uploaded Time
-                  </th> */}
-
+                  {/* <th onClick={() => showHelp('Screenshot last captured time).')}>Last Uploaded Time</th> */}
                   <th
                     onClick={() =>
                       showHelp('Select to capture. Unselect to stop capture.')
@@ -416,6 +414,24 @@ const handleDelete = async (uuid: string, nickName: string) => {
               >
                 {pcSettingsList.map((pc, index) => (
                   <tr key={index}>
+                    <td>
+                      <select
+                        value={pc.planName}
+                        onChange={(e) =>
+                          handlePlanAssignment(index, e.target.value)
+                        }
+                        className="p-2 border rounded"
+                      >
+                        <option value="Plan">Plan</option>
+                        {plans.map((plan, i) => (
+                          <option key={i} value={plan.planName}>
+                            {plan.planName} (
+                            {plan.availableQuantity - plan.assignedQuantity}{' '}
+                            available)
+                          </option>
+                        ))}
+                      </select>
+                    </td>
                     <td>
                       <input
                         type="text"

@@ -39,9 +39,11 @@ export default function PaymentPage() {
     }
   }, [appName, planName, planTiers]);
 
-  const handleQuantityChange = (quantity: number) => {
-    setTotalPrice(unitPrice * quantity);
-  };
+const handleQuantityChange = (quantity: number) => {
+  setTotalPrice(unitPrice * quantity);
+};
+
+const yearlyTotalPrice = totalPrice * 12;
 
   const onSubmit = async (data: FormData) => {
       if (appName === constants.APP_NOTES) {
@@ -110,6 +112,13 @@ export default function PaymentPage() {
                 Total Price (After Discount):
               </label>
               <span className="text-gray-700">${totalPrice.toFixed(2)}</span>
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <label className="font-semibold">Yearly Total Price:</label>
+              <span className="text-gray-700">
+                ${yearlyTotalPrice.toFixed(2)}
+              </span>
             </div>
 
             <label className="flex items-center">
