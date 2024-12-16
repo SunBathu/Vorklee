@@ -5,6 +5,11 @@ import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { calculatePricesToUSD } from '@/utils/pricing';
+import {
+  faCheckCircle,
+  faTimesCircle,
+} from '@fortawesome/free-solid-svg-icons';
+ 
 
 interface PurchaseRecord {
   purchaseId: string;
@@ -48,6 +53,35 @@ export default function PurchasesPage() {
 
     fetchPurchases();
   }, [session]);
+
+
+  const handleAutoRenewalToggle = async (
+    purchaseId: string,
+    currentStatus: boolean,
+  ) => {
+    try {
+      const response = await fetch(`/api/purchases/autorenewal`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchaseId, autoRenewal: !currentStatus }),
+      });
+
+      if (response.ok) {
+        setPurchases((prevPurchases) =>
+          prevPurchases.map((purchase) =>
+            purchase.purchaseId === purchaseId
+              ? { ...purchase, autoRenewal: !currentStatus }
+              : purchase,
+          ),
+        );
+      } else {
+        console.error('Failed to update auto-renewal status');
+      }
+    } catch (error) {
+      console.error('Error updating auto-renewal:', error);
+    }
+  };
+
 
   const handleRenew = (
     appName: string,
@@ -150,13 +184,29 @@ export default function PurchasesPage() {
                       },
                     )}
                   </td>
-                  <td
-                    className={`p-3 ${
-                      purchase.autoRenewal ? 'text-green-600' : 'text-red-600'
-                    }`}
-                  >
-                    {purchase.autoRenewal ? 'Yes' : 'No'}
+
+                  <td className="p-3 text-center">
+                    <FontAwesomeIcon
+                      icon={
+                        purchase.autoRenewal ? faCheckCircle : faTimesCircle
+                      }
+                      className={`text-2xl cursor-pointer ${
+                        purchase.autoRenewal ? 'text-green-500' : 'text-red-500'
+                      }`}
+                      onClick={() =>
+                        handleAutoRenewalToggle(
+                          purchase.purchaseId,
+                          purchase.autoRenewal,
+                        )
+                      }
+                      title={
+                        purchase.autoRenewal
+                          ? 'Disable Auto-Renewal'
+                          : 'Enable Auto-Renewal'
+                      }
+                    />
                   </td>
+
                   <td className="p-3">
                     <button
                       onClick={() =>

@@ -110,7 +110,7 @@ export default function SuccessPage() {
             quantity: quantity || 1,
             canUseInThisManyPC: quantity || 1,
             unitPrice: afterDiscountUnitPriceInCents || 0,
-            totalPrice: afterDiscountTotalPriceInCents || 0,
+            totalPrice: afterDiscountTotalPriceInCents ? 12 * afterDiscountTotalPriceInCents : 0,
             currency: constants.CURRENCY_USD,
             paymentMethod:
               validPlanTier === constants.TIER_TRIAL ? 'N/A' : 'Card',
