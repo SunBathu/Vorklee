@@ -5,21 +5,11 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
+import CustomDropdown from './components/CustomDropdown';
+import { PcSetting } from '@/types/PcSetting';
 
-type PcSetting = {
-  uuid: string;
-  adminEmail: string;
-  nickName: string;
-  planName: string;
-  fileType: string;
-  videoLength?: number;
-  captureInterval: number;
-  fileQuality: number;
-  clientNotificationInterval: string;
-  lastCapturedTime: string;
-  storageUsed: string;
-  captureEnabledByAdmin: boolean;
-};
+
+
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -36,6 +26,7 @@ export default function SettingsPage() {
   const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+const [showDropdown, setShowDropdown] = useState(false);
 
  const showHelp = (content: string) => {
    setHelpContent(content);
@@ -351,7 +342,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       )
                     }
                   >
-                    Video Length
+                    Video Length (Sec)
                   </th>
                   <th
                     onClick={() =>
@@ -360,7 +351,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       )
                     }
                   >
-                    Capture Interval
+                    Capture Interval (Sec)
                   </th>
                   <th
                     onClick={() =>
@@ -434,26 +425,27 @@ const handleDelete = async (uuid: string, nickName: string) => {
                     <td>
                       <input
                         type="number"
+                        min="1"
+                        max="10"
                         value={pc.fileType === 'video' ? pc.videoLength : ''}
                         onChange={(e) =>
-                          handlePcChange(index, 'videoLength', e.target.value)
+                          handlePcChange(
+                            index,
+                            'videoLength',
+                            parseInt(e.target.value),
+                          )
                         }
                         disabled={pc.fileType !== 'video'}
                       />
                     </td>
-                    <td>
-                      <input
-                        type="number"
-                        value={pc.captureInterval}
-                        onChange={(e) =>
-                          handlePcChange(
-                            index,
-                            'captureInterval',
-                            e.target.value,
-                          )
-                        }
-                      />
-                    </td>
+
+                    <CustomDropdown
+                      index={index}
+                      pc={pc}
+                      handlePcChange={handlePcChange}
+                      showHelp={showHelp}
+                    />
+
                     <td>
                       <input
                         type="number"
@@ -671,6 +663,12 @@ const handleDelete = async (uuid: string, nickName: string) => {
           background-color: #3b5998;
           color: white;
           user-select: none;
+        }
+
+        td input {
+          padding-right: 10px;
+          width: 100%; /* Ensure input takes the full width within the cell */
+          box-sizing: border-box; /* Include padding in the width calculation */
         }
         /* ----------------------------
     Column Widths for Table
