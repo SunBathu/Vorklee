@@ -431,6 +431,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                         onChange={(e) =>
                           handlePcChange(index, 'fileType', e.target.value)
                         }
+                        className="p-2 border rounded"
                       >
                         <option value="image">Image</option>
                         {/* <option value="video">Video</option> */}
@@ -549,6 +550,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                             e.target.value,
                           )
                         }
+                        className="p-2 border rounded"
                       >
                         <option value="Do not show any message">
                           Do not show any message

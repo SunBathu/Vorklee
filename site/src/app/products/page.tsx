@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import * as constants from '@/utils/constants';
 import { productPricing, getDiscountedPrice } from '@/utils/pricing';
 import { useMessage } from '@/context/MessageContext';
+import ImageSlider from '@/components/ImageSlider';
 
 interface Purchase {
   appName: string;
@@ -178,7 +179,7 @@ const plans: Array<'Basic' | 'Standard' | 'Premium'> = [
                 className="rounded-lg shadow-md"
               />
             </div>
-
+   
             <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8 mt-8">
               {plans
                 .filter(                     //Show only premiem plan under Capture App. Notes app will show all 3 plans.

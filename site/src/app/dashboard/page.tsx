@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useMessage } from '@/context/MessageContext';
 import Link from 'next/link';
+import ImageSlider from '@/components/ImageSlider';
 
 interface Settings {
   storageUsed: number;
@@ -60,36 +61,36 @@ export default function Dashboard() {
         )}
       </h1>
 
-      <div className="grid grid-cols-2 gap-6 mb-6">
-        <div className="bg-blue-100 p-4 rounded shadow">
-          <h2 className="font-semibold">Storage Used</h2>
-          <p>{settings.storageUsed || 0} MB</p>
+      <div className="flex gap-6 mb-8 pt-10">
+        {/* Image Slider on the Left */}
+        <div className="w-1/2 pr-6">
+          <ImageSlider width="100%" height="600px" />
         </div>
-        <div className="bg-green-100 p-4 rounded shadow">
-          <h2 className="font-semibold">Capture Interval</h2>
-          <p>{settings.captureInterval || 0} seconds</p>
-        </div>
-      </div>
 
-      {/* New Button to Agreement Page */}
-      <div className="flex gap-4 mb-6">
-        <Link href="/agreement.html">
-          <button className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
-            View Agreement
-          </button>
-        </Link>
-      </div>
-
-      {/* Placeholder for an Elegant Graph */}
-      <div className="bg-white p-6 rounded shadow-lg">
-        <h2 className="text-xl font-bold mb-4">User Statistics</h2>
-        <div className="h-64">
-          {/* You can replace this with a real graph component */}
-          <img
-            src="/images/graph-placeholder.png"
-            alt="Graph Placeholder"
-            className="w-full h-full object-contain"
-          />
+        {/* Three Parts Stacked Vertically on the Right */}
+        <div className="w-1/2 flex flex-col gap-6 pt-20">
+          <div className="bg-blue-100 p-4 rounded shadow">
+            <h2 className="font-semibold">Storage Used</h2>
+            <p>{settings.storageUsed || 0} MB</p>
+          </div>
+          <div className="bg-green-100 p-4 rounded shadow">
+            <h2 className="font-semibold">Capture Interval</h2>
+            <p>{settings.captureInterval || 0} seconds</p>
+          </div>
+          <div className="bg-red-100 p-4 rounded shadow">
+            <h2 className="font-semibold">Agreement</h2>
+            <div className="flex gap-4">
+              <Link
+                href="/agreement.html"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <button className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
+                  View Agreement
+                </button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
