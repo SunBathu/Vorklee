@@ -375,11 +375,11 @@ const handleDelete = async (uuid: string, nickName: string) => {
                   <th
                     onClick={() =>
                       showHelp(
-                        'Alert interval for your clients about captures.',
+                        'Alert interval for your clients about captures. Notification will be shown in your client PC based on this interval',
                       )
                     }
                   >
-                    Client Notification Interval
+                    Client PC Notification
                   </th>
                   <th
                     onClick={() => showHelp('Screenshot last captured time).')}
@@ -391,7 +391,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       showHelp('Select to capture. Unselect to stop capture.')
                     }
                   >
-                    Enabled
+                    On/Off Capture
                   </th>
                   <th
                     onClick={() =>
