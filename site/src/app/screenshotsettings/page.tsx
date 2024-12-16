@@ -442,27 +442,83 @@ const handleDelete = async (uuid: string, nickName: string) => {
                       />
                     </td>
                     <td>
-                      <input
-                        type="number"
+                      <select
                         value={pc.captureInterval}
                         onChange={(e) =>
                           handlePcChange(
                             index,
                             'captureInterval',
-                            e.target.value,
+                            parseInt(e.target.value, 10),
                           )
                         }
-                      />
+                        className="p-2 border rounded"
+                      >
+                        {/* Seconds */}
+                        <option value={1}>1 Second</option>
+                        <option value={2}>2 Seconds</option>
+                        <option value={3}>3 Seconds</option>
+                        <option value={4}>4 Seconds</option>
+                        <option value={5}>5 Seconds</option>
+                        <option value={6}>6 Seconds</option>
+                        <option value={7}>7 Seconds</option>
+                        <option value={8}>8 Seconds</option>
+                        <option value={9}>9 Seconds</option>
+                        <option value={10}>10 Seconds</option>
+                        <option value={15}>15 Seconds</option>
+                        <option value={20}>20 Seconds</option>
+                        <option value={30}>30 Seconds</option>
+                        <option value={40}>40 Seconds</option>
+                        <option value={50}>50 Seconds</option>
+                        <option value={60}>60 Seconds</option>
+
+                        {/* Minutes */}
+                        <option value={60}>1 Minute</option>
+                        <option value={120}>2 Minutes</option>
+                        <option value={180}>3 Minutes</option>
+                        <option value={240}>4 Minutes</option>
+                        <option value={300}>5 Minutes</option>
+                        <option value={600}>10 Minutes</option>
+                        <option value={1200}>20 Minutes</option>
+                        <option value={1800}>30 Minutes</option>
+                        <option value={2400}>45 Minutes</option>
+
+                        {/* Hours */}
+                        <option value={3600}>1 Hour</option>
+                        <option value={7200}>2 Hours</option>
+                        <option value={10800}>3 Hours</option>
+                        <option value={14400}>4 Hours</option>
+                        <option value={18000}>5 Hours</option>
+
+                        {/* Special Option */}
+                        <option value={0}>At PC Startup</option>
+                      </select>
                     </td>
+
                     <td>
-                      <input
-                        type="number"
+                      <select
                         value={pc.fileQuality}
                         onChange={(e) =>
-                          handlePcChange(index, 'fileQuality', e.target.value)
+                          handlePcChange(
+                            index,
+                            'fileQuality',
+                            parseInt(e.target.value, 10),
+                          )
                         }
-                      />
+                        className="p-2 border rounded"
+                      >
+                        <option value={100}>100% Quality</option>
+                        <option value={90}>90% Quality</option>
+                        <option value={80}>80% Quality</option>
+                        <option value={70}>70% Quality</option>
+                        <option value={60}>60% Quality</option>
+                        <option value={50}>50% Quality</option>
+                        <option value={40}>40% Quality</option>
+                        <option value={30}>30% Quality</option>
+                        <option value={20}>20% Quality</option>
+                        <option value={10}>10% Quality</option>
+                      </select>
                     </td>
+
                     <td>{pc.storageUsed}</td>
                     <td>
                       <select
@@ -523,12 +579,33 @@ const handleDelete = async (uuid: string, nickName: string) => {
         .container {
           width: 100%;
           height: 100%;
+          max-width: 100%; /* Ensure no maximum width constraint */
           padding: 20px;
           background-color: #4267b2;
           color: white;
           border-radius: 10px;
-          font-family: Arial, sans-serif;
           box-sizing: border-box;
+          font-family: Verdana, Arial, sans-serif;
+        }
+
+        .pc-section {
+          width: 100%;
+          max-width: 100%; /* Ensure the section takes the full width */
+          overflow-x: auto;
+          padding-bottom: 20px;
+        }
+
+        .table-container {
+          width: 100%;
+          max-width: 100%; /* Ensure table container takes full width */
+          margin-top: 20px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          background-color: white;
+          color: black;
         }
 
         .header-container {
@@ -578,10 +655,6 @@ const handleDelete = async (uuid: string, nickName: string) => {
           gap: 20px; /* Space between each form group */
           width: 65%; /* Allocate 65% width for form fields */
         }
-        .title {
-          margin: 0; /* Remove default margin */
-          font-size: 32px;
-        }
 
         .form-group-inline {
           display: flex;
@@ -602,6 +675,7 @@ const handleDelete = async (uuid: string, nickName: string) => {
           border-radius: 4px;
           color: black;
         }
+
         .help-box {
           width: 35%; /* Allocate 35% width for the help box */
           height: 200px;
@@ -633,18 +707,6 @@ const handleDelete = async (uuid: string, nickName: string) => {
         }
 
         /* ----------------------------
-     Table Styling
-     ---------------------------- */
-        table {
-          width: 100%;
-          min-width: 1000px; /* Prevent table from shrinking too much */
-          border-collapse: collapse;
-          margin-top: 20px;
-          background-color: white;
-          color: black;
-          table-layout: fixed; /* Ensure columns have fixed widths */
-        }
-        /* ----------------------------
    Table Cell Styling
    ---------------------------- */
         th,
@@ -658,7 +720,6 @@ const handleDelete = async (uuid: string, nickName: string) => {
           overflow: hidden; /* Hide overflow content */
           text-overflow: ellipsis; /* Add ellipsis for overflowing text */
         }
-
         th {
           padding: 1px 1px; /* Reduce vertical padding to minimize space */
           line-height: 1.2; /* Adjust line height to minimize space between lines */
@@ -672,68 +733,21 @@ const handleDelete = async (uuid: string, nickName: string) => {
           color: white;
           user-select: none;
         }
-        /* ----------------------------
-    Column Widths for Table
-    ---------------------------- */
-        th:nth-child(1),
-        td:nth-child(1) {
-          width: 15%;
-        } /* Nick Name */
-        th:nth-child(2),
-        td:nth-child(2) {
-          width: 10%;
-        } /* File Type */
-        th:nth-child(3),
-        td:nth-child(3) {
-          width: 8%;
-        } /* Video Length */
-        th:nth-child(4),
-        td:nth-child(4) {
-          width: 8%;
-        } /* Capture Interval */
-        th:nth-child(5),
-        td:nth-child(5) {
-          width: 8%;
-        } /* File Quality */
-        th:nth-child(6),
-        td:nth-child(6) {
-          width: 8%;
-        } /* Storage Used */
-        th:nth-child(7),
-        td:nth-child(7) {
-          width: 15%;
-        } /* Client Notification Interval */
-        th:nth-child(8),
-        td:nth-child(8) {
-          width: auto;
-        } /* Last Uploaded Time */
-        th:nth-child(9),
-        td:nth-child(9) {
-          width: 5%;
-        } /* Capture Enabled */
-        th:nth-child(10),
-        td:nth-child(10) {
-          width: 3%;
-        } /* Del client */
-
+        td input {
+          padding-right: 10px;
+          width: 100%; /* Ensure input takes the full width within the cell */
+          box-sizing: border-box; /* Include padding in the width calculation */
+        }
+        /* Delete Icon */
         .delete-icon {
-          fill: red; /* Set the SVG fill color to red */
-          cursor: pointer; /* Change cursor to pointer for click interaction */
-          font-size: 20px; /* Optional: Adjust icon size */
-          transition: fill 0.2s; /* Smooth transition for color change */
+          fill: red;
+          cursor: pointer;
+          font-size: 20px;
+          transition: fill 0.2s;
         }
 
         .delete-icon:hover {
-          fill: darkred; /* Change color to dark red on hover */
-        }
-
-        /* ----------------------------
-     Responsive Table Container
-     ---------------------------- */
-        .table-container {
-          width: 100%;
-          overflow-x: auto; /* Enable horizontal scrolling on small screens */
-          margin-top: 20px;
+          fill: darkred;
         }
       `}</style>
     </div>
