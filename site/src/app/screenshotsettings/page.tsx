@@ -55,19 +55,20 @@ export default function SettingsPage() {
   const [helpContent, setHelpContent] = useState<string>('');
   const showHelp = (content: string) => { setHelpContent(content); };
 
-  // Fetch Settings on Load
+   // Fetch Settings and Plans on Load
  useEffect(() => {
   const fetchSettingsAndPlans = async () => {
     if (!session?.user?.email) return;
 
     try {
+      console.log('Fetching settings and plans...');
       const response = await fetch(`/api/screenshotsettings?adminEmail=${session.user.email}`);
-      console.log('Admin Email:', session?.user?.email);
       const plansResponse = await fetch(`/api/activePlans?adminEmail=${session.user.email}`);
 
 
       if (!response.ok || !plansResponse.ok) {
-        showMessage('Failed to fetch settings or plans.', {
+         console.error('Failed to fetch settings or plans.');
+         showMessage('Failed to fetch settings or plans.', {
           vanishTime: 0,
           blinkCount: 2,
           buttons: 'okCancel',
@@ -80,7 +81,8 @@ export default function SettingsPage() {
       const data = await response.json();
       const { plans } = await plansResponse.json();
 
-      console.log('Fetched Active Plans:', plans); // Debug the fetched plans
+      console.log('Fetched Settings:', data);
+      console.log('Fetched Plans:', plans);
 
       setGlobalSettings(data.globalSettings || {});
       setPcSettingsList(data.pcSettings || []);
@@ -138,89 +140,94 @@ const handlePlanAssignment = (index: number, purchaseId: string) => {
     return;
   }
 
-  try {
-    // Fetch active plans
+  console.log('Preparing to save settings...');
+  console.log('PC Settings List:', pcSettingsList);
 
-    const activePlansResponse = await fetch('/api/activePlans');
+  console.log('Admin Email:', session.user.email);
+  
+  try {    
+    // Fetch active plans
+    const activePlansResponse = await fetch(`/api/activePlans?adminEmail=${session.user.email}`);
+    console.log('Active Plans Response Status:', activePlansResponse.status);
     if (!activePlansResponse.ok) throw new Error('Failed to fetch active plans');
 
     const activePlansData = await activePlansResponse.json();
-
-    // Extract active quantities for each app-plan combination
+    console.log('Fetched Active Plans Data:', activePlansData);
+const activePlans = activePlansData.plans || [];
+console.log('Extracted Active Plans:', activePlans);
+    // Function to get the active plan quantity
 const getActivePlanQty = (appName: string, planName: string) => {
-  return activePlansData.find((plan: { _id: { appName: string; planName: string }; totalQuantity: number }) =>
-    plan._id.appName === appName && plan._id.planName === planName
+  console.log('getActivePlanQty called with:', { appName, planName });
+  const result = activePlans.find(
+    (plan: { _id: { appName: string; planName: string }; totalQuantity: number }) =>
+      plan._id.appName === appName && plan._id.planName === planName
   )?.totalQuantity || 0;
+  console.log('Result for getActivePlanQty:', result);
+  return result;
 };
 
 
 
-    // **Validation to check plan assignment limits**
-    const planUsage: { [key: string]: number } = {};
-    pcSettingsList.forEach((pc) => {
-      if (pc.planName) {
-        planUsage[pc.planName] = (planUsage[pc.planName] || 0) + 1;
-      }
-    });
-
-  for (const planId in planUsage) {
-  const selectedPlan = plans.find((plan) => plan.purchaseId === planId);
-  if (selectedPlan) {
-    const appName = getAppNameByPlan(selectedPlan.planName);
-    if (!appName) {
-      showMessage(`Failed to determine app for plan "${selectedPlan.planName}".`, {
-        vanishTime: 0,
-        blinkCount: 3,
-        buttons: 'okCancel',
-        icon: 'danger',
-      });
-      return;
-    }
-
-    if (planUsage[planId] > getActivePlanQty(appName, selectedPlan.planName)) {
-      showMessage(
-        `Cannot assign more than the available quantity for plan "${selectedPlan.planName}" in app "${appName}".`,
-        {
-          vanishTime: 0,
-          blinkCount: 3,
-          buttons: 'okCancel',
-          icon: 'danger',
-        },
-      );
-      return;
-    }
-  }
-}
-
-
+    // Get active plan quantities for each app and plan type
     const activeScreenshotBasic = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_BASIC);
     const activeScreenshotStandard = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_STANDARD);
     const activeScreenshotPremium = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_PREMIUM);
     const activeNotesBasic = getActivePlanQty(constants.APP_NOTES, constants.PLAN_BASIC);
-    const activeNotesStandard = getActivePlanQty(constants.APP_NOTES,  constants.PLAN_STANDARD);
+    const activeNotesStandard = getActivePlanQty(constants.APP_NOTES, constants.PLAN_STANDARD);
     const activeNotesPremium = getActivePlanQty(constants.APP_NOTES, constants.PLAN_PREMIUM);
 
+    console.log('Active Plan Quantities:', {
+      activeScreenshotBasic,
+      activeScreenshotStandard,
+      activeScreenshotPremium,
+      activeNotesBasic,
+      activeNotesStandard,
+      activeNotesPremium,
+    });
+
     // Count assigned plans
-    const assignedScreenshotBasic = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'basic').length;
-    const assignedScreenshotStandard = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'standard').length;
-    const assignedScreenshotPremium = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'premium').length;
-    const assignedNotesBasic = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'basic').length;
-    const assignedNotesStandard = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'standard').length;
-    const assignedNotesPremium = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'premium').length;
+    const assignedScreenshotBasic = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'basic'
+    ).length;
+    const assignedScreenshotStandard = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'standard'
+    ).length;
+    const assignedScreenshotPremium = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'premium'
+    ).length;
+    const assignedNotesBasic = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Notes App' && pc.fileType === 'basic'
+    ).length;
+    const assignedNotesStandard = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Notes App' && pc.fileType === 'standard'
+    ).length;
+    const assignedNotesPremium = pcSettingsList.filter(
+      (pc) => pc.nickName === 'Notes App' && pc.fileType === 'premium'
+    ).length;
 
-
+    console.log('Assigned Plan Counts:', {
+      assignedScreenshotBasic,
+      assignedScreenshotStandard,
+      assignedScreenshotPremium,
+      assignedNotesBasic,
+      assignedNotesStandard,
+      assignedNotesPremium,
+    });
 
     // Validation
-    if (assignedScreenshotBasic > activeScreenshotBasic ||
-        assignedScreenshotStandard > activeScreenshotStandard ||
-        assignedScreenshotPremium > activeScreenshotPremium ||
-        assignedNotesBasic > activeNotesBasic ||
-        assignedNotesStandard > activeNotesStandard ||
-        assignedNotesPremium > activeNotesPremium) {
+    if (
+      assignedScreenshotBasic > activeScreenshotBasic ||
+      assignedScreenshotStandard > activeScreenshotStandard ||
+      assignedScreenshotPremium > activeScreenshotPremium ||
+      assignedNotesBasic > activeNotesBasic ||
+      assignedNotesStandard > activeNotesStandard ||
+      assignedNotesPremium > activeNotesPremium
+    ) {
       showMessage(
         `Cannot assign more than the available active plans:\n` +
-        `Screenshot Capture App - Basic: ${activeScreenshotBasic}, Standard: ${activeScreenshotStandard}, Premium: ${activeScreenshotPremium}\n` +
-        `Notes App - Basic: ${activeNotesBasic}, Standard: ${activeNotesStandard}, Premium: ${activeNotesPremium}`, {
+          `Screenshot Capture App - Basic: ${activeScreenshotBasic}, Standard: ${activeScreenshotStandard}, Premium: ${activeScreenshotPremium}\n` +
+          `Notes App - Basic: ${activeNotesBasic}, Standard: ${activeNotesStandard}, Premium: ${activeNotesPremium}`,
+        {
           vanishTime: 0,
           blinkCount: 3,
           buttons: 'okCancel',
@@ -229,15 +236,16 @@ const getActivePlanQty = (appName: string, planName: string) => {
       );
       return;
     }
-        console.log('PC Settings List:', pcSettingsList);
-console.log('Payload:', {
-  globalSettings,
-  pcSettingsList: pcSettingsList.map((pc) => ({
-    ...pc,
-    planName: pc.planName,
-  })),
-  adminEmail: session.user.email,
-});
+
+    console.log('PC Settings List:', pcSettingsList);
+const payload = {
+      pcSettingsList: pcSettingsList.map((pc) => ({
+        ...pc,
+        planName: pc.planName,
+      })),
+      adminEmail: session.user.email,
+    };
+
     const response = await fetch('/api/screenshotsettings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -251,8 +259,10 @@ console.log('Payload:', {
         adminEmail: session.user.email,
       }),
     });
-console.log('Response Status:', response.status);
-console.log('Response Text:', await response.text());
+      console.log('Response Status:', response.status);
+      const responseText = await response.text();
+      console.log('Response Text:', responseText);
+
       if (response.status === 404) {
         showMessage('You have not purchased. So, you cannot save settings.', {
           vanishTime: 0,
@@ -283,6 +293,7 @@ console.log('Response Text:', await response.text());
       });
       setIsModified(false);
     } catch (error) {
+      console.error('Error details:', error);
       showMessage('An unexpected error occurred. Please try again.', {
         vanishTime: 0,
         blinkCount: 2,
@@ -346,6 +357,7 @@ console.log('Response Text:', await response.text());
         },
       );
     } catch (error) {
+      console.error('Error details:', error);
       showMessage('An unexpected error occurred. Please try again.', {
         vanishTime: 0,
         blinkCount: 2,
