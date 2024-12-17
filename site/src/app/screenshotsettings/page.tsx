@@ -5,6 +5,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
+import * as constants from '@/utils/constants';
+import { productPricing } from '@/utils/pricing';
+
+
 
 type PcSetting = {
   uuid: string;
@@ -22,10 +26,23 @@ type PcSetting = {
 };
 
 type Plan = {
+  purchaseId: string;
   planName: string;
-  availableQuantity: number;
-  assignedQuantity: number;
+  planActivationDate: string;
+  planExpiryDate: string;
 };
+
+const getAppNameByPlan = (planName: string): string | null => {
+  for (const app in productPricing) {
+    for (const plan in productPricing[app]) {
+      if (plan === planName) {
+        return app;
+      }
+    }
+  }
+  return null;
+};
+
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -39,88 +56,203 @@ export default function SettingsPage() {
   const showHelp = (content: string) => { setHelpContent(content); };
 
   // Fetch Settings on Load
-  useEffect(() => {
-    const fetchSettings = async () => {
-      if (!session?.user?.email) return;
+ useEffect(() => {
+  const fetchSettingsAndPlans = async () => {
+    if (!session?.user?.email) return;
 
-      try {
-        const response = await fetch(
-          `/api/screenshotsettings?adminEmail=${session.user.email}`,
-        );
-        if (!response.ok) {
-          showMessage('Failed to fetch screenshot settings.', {
-            vanishTime: 0,
-            blinkCount: 2,
-            buttons: 'okCancel',
-            icon: 'alert',
-          });
-          setIsLoading(false);
-          return;
-        }
+    try {
+      const response = await fetch(`/api/screenshotsettings?adminEmail=${session.user.email}`);
+      console.log('Admin Email:', session?.user?.email);
+      const plansResponse = await fetch(`/api/activePlans?adminEmail=${session.user.email}`);
 
-        const data = await response.json();
-        setGlobalSettings(data.globalSettings || {});
-        setPcSettingsList(data.pcSettings || []);
-        setPlans(data.plans || []);
-        setIsLoading(false);
-      } catch (err) {
-        showMessage('An unexpected error occurred. Please try again later.', {
+
+      if (!response.ok || !plansResponse.ok) {
+        showMessage('Failed to fetch settings or plans.', {
           vanishTime: 0,
           blinkCount: 2,
           buttons: 'okCancel',
-          icon: 'danger',
+          icon: 'alert',
         });
         setIsLoading(false);
+        return;
       }
-    };
 
-    fetchSettings();
-  }, [session]);
+      const data = await response.json();
+      const { plans } = await plansResponse.json();
 
+      console.log('Fetched Active Plans:', plans); // Debug the fetched plans
 
-  const handlePlanAssignment = (index: number, planName: string) => {
-    const updatedPcSettings = [...pcSettingsList];
-    updatedPcSettings[index] = { ...updatedPcSettings[index], planName };
-    setPcSettingsList(updatedPcSettings);
-    setIsModified(true);
+      setGlobalSettings(data.globalSettings || {});
+      setPcSettingsList(data.pcSettings || []);
+      setPlans(plans || []);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('Error fetching data:', err);
+      showMessage('An unexpected error occurred. Please try again later.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        buttons: 'okCancel',
+        icon: 'danger',
+      });
+      setIsLoading(false);
+    }
   };
+
+  fetchSettingsAndPlans();
+}, [session]);
+
+
+
+const handlePlanAssignment = (index: number, purchaseId: string) => {
+  const updatedPcSettings = [...pcSettingsList];
+  updatedPcSettings[index] = { ...updatedPcSettings[index], planName: purchaseId };
+  setPcSettingsList(updatedPcSettings);
+  setIsModified(true);
+  console.log('Updated PC Settings List:', updatedPcSettings); // Debugging line
+};
 
 
   // Save Settings to the Server
   const handleSave = async () => {
     if (!session?.user?.email) {
-      showMessage('You are not logged in. Please log in to save settings.', {
+    showMessage('You are not logged in. Please log in to save settings.', {
+      vanishTime: 0,
+      blinkCount: 2,
+      buttons: 'okCancel',
+      icon: 'alert',
+    });
+    return;
+  }
+
+  // Validate that each PC setting has a UUID
+  if (pcSettingsList.some((pcSetting) => !pcSetting.uuid)) {
+    showMessage(
+      'One or more PC settings are missing a UUID. You have to re-install the app in that PC.',
+      {
         vanishTime: 0,
         blinkCount: 2,
         buttons: 'okCancel',
-        icon: 'alert',
+        icon: 'danger',
+      },
+    );
+    return;
+  }
+
+  try {
+    // Fetch active plans
+
+    const activePlansResponse = await fetch('/api/activePlans');
+    if (!activePlansResponse.ok) throw new Error('Failed to fetch active plans');
+
+    const activePlansData = await activePlansResponse.json();
+
+    // Extract active quantities for each app-plan combination
+const getActivePlanQty = (appName: string, planName: string) => {
+  return activePlansData.find((plan: { _id: { appName: string; planName: string }; totalQuantity: number }) =>
+    plan._id.appName === appName && plan._id.planName === planName
+  )?.totalQuantity || 0;
+};
+
+
+
+    // **Validation to check plan assignment limits**
+    const planUsage: { [key: string]: number } = {};
+    pcSettingsList.forEach((pc) => {
+      if (pc.planName) {
+        planUsage[pc.planName] = (planUsage[pc.planName] || 0) + 1;
+      }
+    });
+
+  for (const planId in planUsage) {
+  const selectedPlan = plans.find((plan) => plan.purchaseId === planId);
+  if (selectedPlan) {
+    const appName = getAppNameByPlan(selectedPlan.planName);
+    if (!appName) {
+      showMessage(`Failed to determine app for plan "${selectedPlan.planName}".`, {
+        vanishTime: 0,
+        blinkCount: 3,
+        buttons: 'okCancel',
+        icon: 'danger',
       });
       return;
     }
-    // Validate that each PC setting has a uuid
-    if (pcSettingsList.some((pcSetting) => !pcSetting.uuid)) {
+
+    if (planUsage[planId] > getActivePlanQty(appName, selectedPlan.planName)) {
       showMessage(
-        'One or more PC settings are missing a UUID. You have to re-install the app in that PC.',
+        `Cannot assign more than the available quantity for plan "${selectedPlan.planName}" in app "${appName}".`,
         {
           vanishTime: 0,
-          blinkCount: 2,
+          blinkCount: 3,
           buttons: 'okCancel',
           icon: 'danger',
         },
       );
       return;
     }
-    try {
-      const response = await fetch('/api/screenshotsettings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          globalSettings,
-          pcSettingsList,
-          adminEmail: session.user.email,
-        }),
-      });
+  }
+}
 
+
+    const activeScreenshotBasic = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_BASIC);
+    const activeScreenshotStandard = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_STANDARD);
+    const activeScreenshotPremium = getActivePlanQty(constants.APP_CAPTURE, constants.PLAN_PREMIUM);
+    const activeNotesBasic = getActivePlanQty(constants.APP_NOTES, constants.PLAN_BASIC);
+    const activeNotesStandard = getActivePlanQty(constants.APP_NOTES,  constants.PLAN_STANDARD);
+    const activeNotesPremium = getActivePlanQty(constants.APP_NOTES, constants.PLAN_PREMIUM);
+
+    // Count assigned plans
+    const assignedScreenshotBasic = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'basic').length;
+    const assignedScreenshotStandard = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'standard').length;
+    const assignedScreenshotPremium = pcSettingsList.filter(pc => pc.nickName === 'Screenshot Capture App' && pc.fileType === 'premium').length;
+    const assignedNotesBasic = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'basic').length;
+    const assignedNotesStandard = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'standard').length;
+    const assignedNotesPremium = pcSettingsList.filter(pc => pc.nickName === 'Notes App' && pc.fileType === 'premium').length;
+
+
+
+    // Validation
+    if (assignedScreenshotBasic > activeScreenshotBasic ||
+        assignedScreenshotStandard > activeScreenshotStandard ||
+        assignedScreenshotPremium > activeScreenshotPremium ||
+        assignedNotesBasic > activeNotesBasic ||
+        assignedNotesStandard > activeNotesStandard ||
+        assignedNotesPremium > activeNotesPremium) {
+      showMessage(
+        `Cannot assign more than the available active plans:\n` +
+        `Screenshot Capture App - Basic: ${activeScreenshotBasic}, Standard: ${activeScreenshotStandard}, Premium: ${activeScreenshotPremium}\n` +
+        `Notes App - Basic: ${activeNotesBasic}, Standard: ${activeNotesStandard}, Premium: ${activeNotesPremium}`, {
+          vanishTime: 0,
+          blinkCount: 3,
+          buttons: 'okCancel',
+          icon: 'danger',
+        }
+      );
+      return;
+    }
+        console.log('PC Settings List:', pcSettingsList);
+console.log('Payload:', {
+  globalSettings,
+  pcSettingsList: pcSettingsList.map((pc) => ({
+    ...pc,
+    planName: pc.planName,
+  })),
+  adminEmail: session.user.email,
+});
+    const response = await fetch('/api/screenshotsettings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        globalSettings,
+        pcSettingsList: pcSettingsList.map((pc) => ({
+          ...pc,
+          // Highlighted change to ensure planName (purchaseId) is included
+          planName: pc.planName,
+        })),
+        adminEmail: session.user.email,
+      }),
+    });
+console.log('Response Status:', response.status);
+console.log('Response Text:', await response.text());
       if (response.status === 404) {
         showMessage('You have not purchased. So, you cannot save settings.', {
           vanishTime: 0,
@@ -133,6 +265,7 @@ export default function SettingsPage() {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('Save Error:', errorText);
         showMessage(`Failed to save settings: ${errorText}`, {
           vanishTime: 0,
           blinkCount: 3,
@@ -159,6 +292,10 @@ export default function SettingsPage() {
     }
   };
 
+    const isPlanActive = (date: string) => {
+  const parsedDate = new Date(date);
+  return !isNaN(parsedDate.getTime()) && parsedDate >= new Date();
+};
 
 
   const handleDelete = async (uuid: string, nickName: string) => {
@@ -341,7 +478,7 @@ export default function SettingsPage() {
                     }
                   >
                     {' '}
-                    Plan{' '}
+                    Assigned Plan{' '}
                   </th>
                   <th
                     onClick={() =>
@@ -413,25 +550,58 @@ export default function SettingsPage() {
                 }}
               >
                 {pcSettingsList.map((pc, index) => (
-                  <tr key={index}>
-                    <td>
-                      <select
-                        value={pc.planName}
-                        onChange={(e) =>
-                          handlePlanAssignment(index, e.target.value)
-                        }
-                        className="p-2 border rounded"
-                      >
-                        <option value="Plan">Plan</option>
-                        {plans.map((plan, i) => (
-                          <option key={i} value={plan.planName}>
-                            {plan.planName} (
-                            {plan.availableQuantity - plan.assignedQuantity}{' '}
-                            available)
-                          </option>
-                        ))}
-                      </select>
-                    </td>
+            <tr key={index}>
+<td>
+  <select
+    value={pc.planName}
+    onChange={(e) => handlePlanAssignment(index, e.target.value)}
+    className="p-2 border rounded"
+  >
+    <option value="">Select Plan</option>
+    {plans.map((plan) => {
+      console.log('Plan Details:', plan); // Debug each plan entry
+      return (
+        <option key={plan.purchaseId} value={plan.purchaseId}>
+          {plan.planName
+            ? `${plan.planName} - [${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}]`
+            : 'Invalid Plan'}
+        </option>
+      );
+    })}
+  </select>
+
+  {/* Display Selected Plan */}
+  <div className="mt-2 text-sm text-gray-600">
+    {(() => {
+      const selectedPlan = plans.find((plan) => plan.purchaseId === pc.planName);
+      return selectedPlan
+        ? `${selectedPlan.planName} - [${new Date(selectedPlan.planActivationDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })} - ${new Date(selectedPlan.planExpiryDate).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+          })}]`
+        : 'No Plan';
+    })()}
+  </div>
+</td>
+
+
+
+
+
+
                     <td>
                       <input
                         type="text"
