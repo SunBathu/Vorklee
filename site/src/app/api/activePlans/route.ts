@@ -22,12 +22,34 @@ export async function GET(req: NextRequest) {
     console.log('Current Date:', new Date());
 
     // Fetch only active (non-expired) purchase records
-    const activePlans = await purchaseRecords.find({
-      adminEmail,
-      planExpiryDate: { $gte: new Date() },
-    }).select(
-      'purchaseId appName planName planActivationDate planExpiryDate canUseInThisManyPC',
-    );
+const activePlans = await purchaseRecords
+  .find({
+    adminEmail,
+    planExpiryDate: { $gte: new Date() },
+  })
+  .select(
+    'purchaseId appName planName planActivationDate planExpiryDate canUseInThisManyPC',
+  );
+
+// Define the desired order for plan names
+const planOrder = ['Basic', 'Standard', 'Premium'];
+
+// Sort by planName (custom order) and then by planExpiryDate (earlier dates first)
+activePlans.sort((a, b) => {
+  const planOrderA = planOrder.indexOf(a.planName);
+  const planOrderB = planOrder.indexOf(b.planName);
+
+  // First, compare by planName order
+  if (planOrderA !== planOrderB) {
+    return planOrderA - planOrderB;
+  }
+
+  // If planName is the same, compare by planExpiryDate (earlier first)
+  return new Date(a.planExpiryDate).getTime() - new Date(b.planExpiryDate).getTime();
+});
+
+console.log('Sorted Active Plans:', activePlans);
+
 
     if (!activePlans.length) {
       console.log('No active plans found.');

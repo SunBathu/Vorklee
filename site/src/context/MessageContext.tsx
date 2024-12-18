@@ -6,7 +6,7 @@ interface MessageOptions {
   vanishTime?: number;
   blinkCount?: number;
   button?: 'noButton' | 'ok' | 'okCancel' | 'yesNo';
-  icon?: 'alert' | 'important' | 'danger' | 'success';
+  icon?: 'none' | 'alert' | 'important' | 'danger' | 'success';
   onClose?: () => void;
 }
 
@@ -26,15 +26,19 @@ export const MessageProvider = ({ children }: { children: ReactNode }) => {
   const [options, setOptions] = useState<MessageOptions | null>(null);
 
   const showMessage = (msg: string, opts?: MessageOptions) => {
-    setMessage(msg);
-    setOptions(opts || null);
+    // setMessage(msg);
+    // setOptions(opts || null);
+  const formattedMsg = msg.replace(/\n/g, '<br />'); // Replace newlines with <br />
+  setMessage(formattedMsg);
+  setOptions(opts || null);
+  
+// Handle vanish time
+if (opts?.vanishTime && opts.vanishTime > 0) {
+  setTimeout(() => {
+    clearMessage();
+  }, opts.vanishTime);
+}
 
-    // Handle vanish time
-    if (opts?.vanishTime) {
-      setTimeout(() => {
-        clearMessage();
-      }, opts.vanishTime);
-    }
 
     // Handle blinking
     if (opts?.blinkCount && opts.blinkCount > 0) {

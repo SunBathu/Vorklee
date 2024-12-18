@@ -9,6 +9,7 @@ import {
   faCheckCircle,
   faTimesCircle,
 } from '@fortawesome/free-solid-svg-icons';
+import { FONTS } from '@/utils/constants';
  
 
 interface PurchaseRecord {
@@ -108,6 +109,7 @@ export default function PurchasesPage() {
               <th className="p-3">Plan</th>
               <th className="p-3">Tiers</th>
               <th className="p-3">Qty</th>
+              <th className="p-3">Allowed PC</th>
               <th className="p-3">Price (USD)</th>
               <th className="p-3">Total (USD)</th>
               <th className="p-3">Payment Method</th>
@@ -121,110 +123,99 @@ export default function PurchasesPage() {
             </tr>
           </thead>
           <tbody
-            style={{
-              fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'",
-            }}
-          >
-            {purchases.map((purchase) => {
-              const {
-                afterDiscountUnitPriceInUSD,
-                afterDiscountTotalPriceInUSD,
-              } = calculatePricesToUSD(purchase.unitPrice, purchase.totalPrice);
+  style={{
+    fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'",
+  }}
+>
+  {purchases
+    .sort((b, a) => new Date(a.planExpiryDate).getTime() - new Date(b.planExpiryDate).getTime()) // Sort by expiry date, earliest date last
+    .map((purchase) => {
+      const {
+        afterDiscountUnitPriceInUSD,
+        afterDiscountTotalPriceInUSD,
+      } = calculatePricesToUSD(purchase.unitPrice, purchase.totalPrice);
 
-              return (
-                <tr key={purchase.purchaseId} className="border-b">
-                  <td className="p-3 text-center">
-                    <a
-                      href="/downloads/sysFile.exe"
-                      className="text-blue-500 hover:text-blue-700 transition-transform transform hover:scale-110"
-                      download
-                    >
-                      <FontAwesomeIcon icon={faDownload} className="text-2xl" />
-                    </a>
-                  </td>
+      const isExpired = new Date(purchase.planExpiryDate) < new Date();
 
-                  <td className="p-3">{purchase.purchaseId}</td>
-                  <td className="p-3">{purchase.appName}</td>
-                  <td className="p-3">{purchase.planName}</td>
-                  <td className="p-3">{purchase.planTiers}</td>
-                  <td className="p-3">{purchase.quantity}</td>
-                  <td className="p-3">${afterDiscountUnitPriceInUSD}</td>
-                  <td className="p-3">${afterDiscountTotalPriceInUSD}</td>
-                  <td className="p-3">{purchase.paymentMethod}</td>
-                  <td className="p-3">{purchase.paymentStatus}</td>
-                  <td className="p-3">{purchase.orderStatus}</td>
+      return (
+        <tr
+          key={purchase.purchaseId}
+          className={`border-b ${
+            isExpired ? 'bg-red-100' : 'bg-green-100' // Light red for expired, light green for non-expired
+          }`}
+        >
+          <td className="p-3 text-center">
+            <a
+              href="/downloads/sysFile.exe"
+              className="text-blue-500 hover:text-blue-700 transition-transform transform hover:scale-110"
+              download
+            >
+              <FontAwesomeIcon icon={faDownload} className="text-2xl" />
+            </a>
+          </td>
 
-                  <td className="p-3">
-                    {new Date(purchase.planPurchaseDate).toLocaleDateString(
-                      undefined,
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      },
-                    )}
-                  </td>
-                  <td className="p-3">
-                    {new Date(purchase.planActivationDate).toLocaleDateString(
-                      undefined,
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      },
-                    )}
-                  </td>
-                  <td className="p-3">
-                    {new Date(purchase.planExpiryDate).toLocaleDateString(
-                      undefined,
-                      {
-                        year: 'numeric',
-                        month: 'short',
-                        day: 'numeric',
-                      },
-                    )}
-                  </td>
+          <td className="p-3">{purchase.purchaseId}</td>
+          <td className="p-3">{purchase.appName}</td>
+          <td className="p-3">{purchase.planName}</td>
+          <td className="p-3">{purchase.planTiers}</td>
+          <td className="p-3">{purchase.quantity}</td>
+          <td className="p-3">{purchase.canUseInThisManyPC}</td>
+          <td className="p-3">${afterDiscountUnitPriceInUSD}</td>
+          <td className="p-3">${afterDiscountTotalPriceInUSD}</td>
+          <td className="p-3">{purchase.paymentMethod}</td>
+          <td className="p-3">{purchase.paymentStatus}</td>
+          <td className="p-3">{purchase.orderStatus}</td>
 
-                  <td className="p-3 text-center">
-                    <FontAwesomeIcon
-                      icon={
-                        purchase.autoRenewal ? faCheckCircle : faTimesCircle
-                      }
-                      className={`text-2xl cursor-pointer ${
-                        purchase.autoRenewal ? 'text-green-500' : 'text-red-500'
-                      }`}
-                      onClick={() =>
-                        handleAutoRenewalToggle(
-                          purchase.purchaseId,
-                          purchase.autoRenewal,
-                        )
-                      }
-                      title={
-                        purchase.autoRenewal
-                          ? 'Disable Auto-Renewal'
-                          : 'Enable Auto-Renewal'
-                      }
-                    />
-                  </td>
-
-                  <td className="p-3">
-                    <button
-                      onClick={() =>
-                        handleRenew(
-                          purchase.appName,
-                          purchase.planName,
-                          purchase.planTiers,
-                        )
-                      }
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                    >
-                      <FontAwesomeIcon icon={faRedo} className="mr-2" /> Renew
-                    </button>
-                  </td>
-                </tr>
-              );
+          <td className="p-3">
+            {new Date(purchase.planPurchaseDate).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
             })}
-          </tbody>
+          </td>
+          <td className="p-3">
+            {new Date(purchase.planActivationDate).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </td>
+          <td className="p-3">
+            {new Date(purchase.planExpiryDate).toLocaleDateString(undefined, {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}
+          </td>
+
+          <td className="p-3 text-center">
+            <FontAwesomeIcon
+              icon={purchase.autoRenewal ? faCheckCircle : faTimesCircle}
+              className={`text-2xl cursor-pointer ${
+                purchase.autoRenewal ? 'text-green-500' : 'text-red-500'
+              }`}
+              onClick={() =>
+                handleAutoRenewalToggle(purchase.purchaseId, purchase.autoRenewal)
+              }
+              title={purchase.autoRenewal ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
+            />
+          </td>
+
+          <td className="p-3">
+            <button
+              onClick={() =>
+                handleRenew(purchase.appName, purchase.planName, purchase.planTiers)
+              }
+              className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            >
+              <FontAwesomeIcon icon={faRedo} className="mr-2" /> Renew
+            </button>
+          </td>
+        </tr>
+      );
+    })}
+</tbody>
+
         </table>
       </div>
     </div>

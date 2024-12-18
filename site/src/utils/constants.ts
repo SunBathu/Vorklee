@@ -21,17 +21,20 @@ export const STATUS_CANCELLED = 'Cancelled' as const;
 export const STATUS_PENDING = 'Pending' as const;
 export const STATUS_PAID = 'Paid' as const;
 export const STATUS_COMPLETED = 'Completed' as const;
+export const FONTS = ['Verdana', 'Consolas', 'sans-serif', 'Arial', 'helvetica'].join(', ');
+
 
 
 export const MSG = {
   BUTTON: {
-    NOBUTTON: 'noButton' as const,
+    NONE: 'noButton' as const,
     OK: 'ok' as const,
     OKCANCEL: 'okCancel' as const,
     YESNO: 'yesNo' as const,
   },
 
   ICON: {
+    NONE: 'noIcon' as const,
     ALERT: 'alert' as const,
     IMPORTANT: 'important' as const,
     DANGER: 'danger' as const,

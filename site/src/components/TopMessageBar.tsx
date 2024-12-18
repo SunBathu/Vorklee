@@ -19,7 +19,7 @@ export default function TopMessageBar() {
     <div className="h-12 bg-blue-600 text-white flex items-center px-4 shadow-md">
       <div className="flex items-center space-x-4">
         {/* Buttons */}
-        {/* {options?.button === constants.MSG.BUTTON.NOBUTTON && (
+        {/* {options?.button === constants.MSG.BUTTON.NONE && (
 
         )} */}
         {options?.button === constants.MSG.BUTTON.OK && (
@@ -70,6 +70,7 @@ export default function TopMessageBar() {
         {options?.button && <div className="h-2 w-0 bg-blue-600"></div>}
 
         {/* Icon Display */}
+        {options?.icon === 'none' && <span className="mr-1"></span>}
         {options?.icon === 'alert' && <span className="mr-1">⚠️</span>}
         {options?.icon === 'important' && <span className="mr-1">❗</span>}
         {options?.icon === 'danger' && <span className="mr-1">🚨</span>}        
