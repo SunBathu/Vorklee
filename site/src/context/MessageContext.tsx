@@ -5,8 +5,8 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 interface MessageOptions {
   vanishTime?: number;
   blinkCount?: number;
-  buttons?: 'okCancel' | 'yesNo';
-  icon?: 'alert' | 'important' | 'danger';
+  button?: 'noButton' | 'ok' | 'okCancel' | 'yesNo';
+  icon?: 'alert' | 'important' | 'danger' | 'success';
   onClose?: () => void;
 }
 

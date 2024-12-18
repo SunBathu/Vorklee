@@ -71,7 +71,7 @@ export default function SettingsPage() {
          showMessage('Failed to fetch settings or plans.', {
           vanishTime: 0,
           blinkCount: 2,
-          buttons: 'okCancel',
+          button: constants.MSG.BUTTON.OK,
           icon: 'alert',
         });
         setIsLoading(false);
@@ -93,8 +93,8 @@ export default function SettingsPage() {
       showMessage('An unexpected error occurred. Please try again later.', {
         vanishTime: 0,
         blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
       });
       setIsLoading(false);
     }
@@ -120,7 +120,7 @@ const handlePlanAssignment = (index: number, purchaseId: string) => {
     showMessage('You are not logged in. Please log in to save settings.', {
       vanishTime: 0,
       blinkCount: 2,
-      buttons: 'okCancel',
+      button: constants.MSG.BUTTON.OK,
       icon: 'alert',
     });
     return;
@@ -133,8 +133,8 @@ const handlePlanAssignment = (index: number, purchaseId: string) => {
       {
         vanishTime: 0,
         blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
       },
     );
     return;
@@ -230,8 +230,8 @@ const getActivePlanQty = (appName: string, planName: string) => {
         {
           vanishTime: 0,
           blinkCount: 3,
-          buttons: 'okCancel',
-          icon: 'danger',
+          button: constants.MSG.BUTTON.OK,
+          icon: constants.MSG.ICON.DANGER,
         }
       );
       return;
@@ -267,8 +267,8 @@ const payload = {
         showMessage('You have not purchased. So, you cannot save settings.', {
           vanishTime: 0,
           blinkCount: 3,
-          buttons: 'okCancel',
-          icon: 'danger',
+          button: constants.MSG.BUTTON.OK,
+          icon: constants.MSG.ICON.DANGER,
         });
         return;
       }
@@ -279,8 +279,8 @@ const payload = {
         showMessage(`Failed to save settings: ${errorText}`, {
           vanishTime: 0,
           blinkCount: 3,
-          buttons: 'okCancel',
-          icon: 'danger',
+          button: constants.MSG.BUTTON.OK,
+          icon: constants.MSG.ICON.DANGER,
         });
         return;
       }
@@ -288,17 +288,19 @@ const payload = {
       showMessage('Settings saved successfully.', {
         vanishTime: 3000,
         blinkCount: 0,
-        buttons: 'okCancel',
-        icon: 'important',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.SUCCESS,
       });
       setIsModified(false);
-    } catch (error) {
+    } 
+    
+    catch (error) {
       console.error('Error details:', error);
       showMessage('An unexpected error occurred. Please try again.', {
         vanishTime: 0,
         blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
       });
     }
   };
@@ -318,8 +320,8 @@ const payload = {
       showMessage('Deletion cancelled or nickname did not match.', {
         vanishTime: 0,
         blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
       });
       return;
     }
@@ -337,8 +339,8 @@ const payload = {
         showMessage(`Failed to delete client: ${errorText}`, {
           vanishTime: 0,
           blinkCount: 3,
-          buttons: 'okCancel',
-          icon: 'danger',
+          button: constants.MSG.BUTTON.OK,
+          icon: constants.MSG.ICON.DANGER,
         });
         return;
       }
@@ -352,7 +354,7 @@ const payload = {
         {
           vanishTime: 3000,
           blinkCount: 0,
-          buttons: 'okCancel',
+          button: constants.MSG.BUTTON.OK,
           icon: 'important',
         },
       );
@@ -361,8 +363,8 @@ const payload = {
       showMessage('An unexpected error occurred. Please try again.', {
         vanishTime: 0,
         blinkCount: 2,
-        buttons: 'okCancel',
-        icon: 'danger',
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
       });
     }
   };

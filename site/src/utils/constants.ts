@@ -1,3 +1,4 @@
+import { icon } from '@fortawesome/fontawesome-svg-core';
 import exp from 'constants';
 
 // src/utils/constants.ts
@@ -21,7 +22,24 @@ export const STATUS_PENDING = 'Pending' as const;
 export const STATUS_PAID = 'Paid' as const;
 export const STATUS_COMPLETED = 'Completed' as const;
 
- 
+
+export const MSG = {
+  BUTTON: {
+    NOBUTTON: 'noButton' as const,
+    OK: 'ok' as const,
+    OKCANCEL: 'okCancel' as const,
+    YESNO: 'yesNo' as const,
+  },
+
+  ICON: {
+    ALERT: 'alert' as const,
+    IMPORTANT: 'important' as const,
+    DANGER: 'danger' as const,
+    SUCCESS: 'success' as const,
+  },
+};
+
+
 
 export const FEATURES = {
   [APP_CAPTURE]: {

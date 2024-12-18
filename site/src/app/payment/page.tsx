@@ -47,7 +47,7 @@ const yearlyTotalPrice = totalPrice * 12;
 
   const onSubmit = async (data: FormData) => {
       if (appName === constants.APP_NOTES) {
-         showMessage('The Notes App is currently unavailable for purchase. Please check back later.', {vanishTime: 0, blinkCount: 2, buttons: 'okCancel', icon: 'important'})
+         showMessage('The Notes App is currently unavailable for purchase. Please check back later.', {vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: 'important'})
          return;
       }
       router.push(

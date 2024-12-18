@@ -51,7 +51,7 @@ console.log(appName, planName, planTiers);
           {
             vanishTime: 0,
             blinkCount: 4,
-            buttons: 'okCancel',
+            button: constants.MSG.BUTTON.OK,
             icon: 'alert',
           }
         );
@@ -66,7 +66,7 @@ console.log(appName, planName, planTiers);
       showMessage('An error occurred while checking your purchases.', {
         vanishTime: 0,
         blinkCount: 0,
-        buttons: 'okCancel',
+        button: constants.MSG.BUTTON.OK,
         icon: 'alert',
       });
     }
