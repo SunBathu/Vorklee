@@ -29,11 +29,23 @@ type Plan = {
   activationDates: string[]; // Ensure this is defined
   expiryDates: string[];     // Ensure this is defined
 };
+type ActivePlan = {
+  _id: string;
+  purchaseId: string;
+  appName: string;
+  planName: string;
+  planActivationDate: string;
+  planExpiryDate: string;
+  canUseInThisManyPC: number;
+};
+
 
 export default function SettingsPage() {
   const { data: session } = useSession();
   const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
-  const [activePlans, setActivePlans] = useState([]);
+  // const [activePlans, setActivePlans] = useState([]);
+  const [activePlans, setActivePlans] = useState<ActivePlan[]>([]);
+
   const [plans, setPlans] = useState<Plan[]>([]);
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
@@ -56,6 +68,19 @@ export default function SettingsPage() {
           fetch(`/api/screenshotsettings?adminEmail=${session.user.email}`),
           fetch(`/api/activePlans?adminEmail=${session.user.email}`),
         ]);
+// Fetch active plans
+const fetchActivePlans = async () => {
+  const res = await fetch(`/api/activePlans?adminEmail=${session.user.email}`);
+  const data = await res.json();
+  setActivePlans(data.plans || []);
+};
+
+// Fetch aggregated plans (if needed)
+const fetchAggregatedPlans = async () => {
+  const res = await fetch(`/api/aggregatedPlans?adminEmail=${session.user.email}`);
+  const data = await res.json();
+  setPlans(data.plans || []);
+};
 
         if (!response.ok || !plansResponse.ok) {
           showMessage('Failed to fetch settings or plans.', {
@@ -558,19 +583,21 @@ console.log('Plans:', plans);
       className="p-2 border rounded"
     >
 <option value=""></option>
-{activePlans.map((plan) => (
-  <option key={plan.purchaseId} value={plan.planName}>
-    {`[${new Date(plan.activationDates[0]).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })} - ${new Date(plan.expiryDates[0]).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })}] - ${plan.planName}`}
+console.log('Active Plans in Component:', activePlans);
+{activePlans.map((plan, index) => (
+  <option key={plan.purchaseId || index} value={plan.planName}>
+    {`[${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })}] - ${plan.planName}`}
   </option>
 ))}
+
     </select>
   </div>
 </td>
