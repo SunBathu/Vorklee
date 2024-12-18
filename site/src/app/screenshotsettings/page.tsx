@@ -123,16 +123,19 @@ console.log('Plans:', plans);
 
     fetchSettingsAndPlans();
   }, [session]);
+const handlePlanAssignment = (index: number, selectedPurchaseId: string) => {
+  setPcSettingsList((prev) => {
+    const newSettings = [...prev];
+    newSettings[index] = {
+      ...newSettings[index],
+      planName: selectedPurchaseId, // Store the purchaseId
+    };
+    return newSettings;
+  });
+  setIsModified(true);
+};
 
- const handlePlanAssignment = (index: number, purchaseId: string) => {
-   const updatedPcSettings = [...pcSettingsList];
-   updatedPcSettings[index] = {
-     ...updatedPcSettings[index],
-     planName: purchaseId,
-   };
-   setPcSettingsList(updatedPcSettings);
-   setIsModified(true);
- };
+
 
 
 
@@ -576,29 +579,28 @@ console.log('Plans:', plans);
              
   <td className="relative">
   <div className="relative">
-    <select
-      value={pc.planName}
-   
-      onChange={(e) => {console.log ('pc.planName', pc.planName); handlePlanAssignment(index, e.target.value)}}
-      className="p-2 border rounded"
-    >
-<option value=""></option>
-console.log('Active Plans in Component:', activePlans);
-{activePlans.map((plan, index) => (
-  <option key={plan.purchaseId || index} value={plan.planName}>
-    {`[${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })}] - ${plan.planName}`}
-  </option>
-))}
+  <select
+  value={pcSettingsList[index].planName || ''} // Set value to purchaseId
+  onChange={(e) => handlePlanAssignment(index, e.target.value)}
+  className="p-2 border rounded"
+>
+  <option value=""></option>
+  {activePlans.map((plan) => (
+    <option key={plan.purchaseId} value={plan.purchaseId}>
+      {`[${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })}] - ${plan.planName}`}
+    </option>
+  ))}
+</select>
 
-    </select>
+
   </div>
 </td>
 
