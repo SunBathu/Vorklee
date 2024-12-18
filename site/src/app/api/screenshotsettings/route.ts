@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/utils/dbConnect';
 import SysFileSettingsGlobal from '@/models/SysFileSettingsGlobal';
 import SysFileSettingsPCWise from '@/models/SysFileSettingsPCWise';
-import PurchaseRecords from '@/models/PurchaseRecords';
+import purchaseRecords from '@/models/PurchaseRecords';
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const [globalSettings, pcSettings, activePlans] = await Promise.all([
       SysFileSettingsGlobal.findOne({ adminEmail }),
       SysFileSettingsPCWise.find({ adminEmail }),
-      PurchaseRecords.find({ adminEmail, planExpiryDate: { $gte: new Date() } }),
+      purchaseRecords.find({ adminEmail, planExpiryDate: { $gte: new Date() } }),
     ]);
 
     if (!globalSettings && pcSettings.length === 0) {

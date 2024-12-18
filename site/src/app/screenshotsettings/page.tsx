@@ -26,28 +26,25 @@ type PcSetting = {
 type Plan = {
   purchaseId: string;
   planName: string;
-  planActivationDate: string;
-  planExpiryDate: string;
+  activationDates: string[]; // Ensure this is defined
+  expiryDates: string[];     // Ensure this is defined
 };
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const { showMessage } = useMessage();
-  const showHelp = (content: string) => {
-    setHelpContent(content);
-  };
-
+  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
+  const [activePlans, setActivePlans] = useState([]);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
     whichFoldersToDeleteWhenStorageFull: 'AmongAll',
   });
-  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [helpContent, setHelpContent] = useState<string>('');
-  
+  const { showMessage } = useMessage();
+  const showHelp = (content: string) => {setHelpContent(content);};
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
 
   useEffect(() => {
@@ -72,12 +69,22 @@ export default function SettingsPage() {
         }
 
         const data = await response.json();
-        const { plans } = await plansResponse.json();
+        const activePlansData = await plansResponse.json();
+        setActivePlans(activePlansData.plans || []);
+        // const { plans } = await plansResponse.json();
+        setPlans(activePlansData.plans || []);
 
-        setGlobalSettings(data.globalSettings || {});
-        setPcSettingsList(data.pcSettings || []);
-        setPlans(plans || []);
+setGlobalSettings(data.globalSettings || {});
+console.log('Global Settings:', data.globalSettings);
+
+setPcSettingsList(data.pcSettings || []);
+console.log('PC Settings List:', data.pcSettings);
+
+// setPlans(plans || []);
+console.log('Plans:', plans);
+
         setIsLoading(false);
+
       } catch (err) {
         showMessage('An unexpected error occurred. Please try again later.', {
           vanishTime: 0,
@@ -92,15 +99,17 @@ export default function SettingsPage() {
     fetchSettingsAndPlans();
   }, [session]);
 
-  const handlePlanAssignment = (index: number, purchaseId: string) => {
-    const updatedPcSettings = [...pcSettingsList];
-    updatedPcSettings[index] = {
-      ...updatedPcSettings[index],
-      planName: purchaseId,
-    };
-    setPcSettingsList(updatedPcSettings);
-    setIsModified(true);
-  };
+ const handlePlanAssignment = (index: number, purchaseId: string) => {
+   const updatedPcSettings = [...pcSettingsList];
+   updatedPcSettings[index] = {
+     ...updatedPcSettings[index],
+     planName: purchaseId,
+   };
+   setPcSettingsList(updatedPcSettings);
+   setIsModified(true);
+ };
+
+
 
   const getAppNameByPlan = (planName: string): string | null => {
     for (const app in productPricing) {
@@ -127,52 +136,37 @@ export default function SettingsPage() {
 
     // Validate that each PC setting has a UUID
     if (pcSettingsList.some((pc) => !pc.uuid)) {
-      showMessage(
-        'One or more PC settings are missing a UUID. You have to re-install the app on that PC.',
-        {
-          vanishTime: 0,
-          blinkCount: 2,
-          button: constants.MSG.BUTTON.OK,
-          icon: constants.MSG.ICON.DANGER,
-        },
-      );
+      showMessage('One or more PC settings are missing a UUID.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
+      });
       return;
     }
-
-    console.log('Preparing to save settings...');
-    console.log('PC Settings List:', pcSettingsList);
-    console.log('Admin Email:', session.user.email);
 
     try {
       // Fetch active plans
       const activePlansResponse = await fetch(
         `/api/activePlans?adminEmail=${session.user.email}`,
       );
-      console.log('Active Plans Response Status:', activePlansResponse.status);
-
-      if (!activePlansResponse.ok) {
+      if (!activePlansResponse.ok)
         throw new Error('Failed to fetch active plans');
-      }
 
       const activePlansData = await activePlansResponse.json();
-      console.log('Fetched Active Plans Data:', activePlansData);
-
       const activePlans = activePlansData.plans || [];
-      console.log('Extracted Active Plans:', activePlans);
 
       // Function to get the active plan quantity
       const getActivePlanQty = (appName: string, planName: string) => {
-        const result =
+        return (
           activePlans.find(
             (plan: {
               appName: string;
               planName: string;
               totalUsablePCs: number;
             }) => plan.appName === appName && plan.planName === planName,
-          )?.totalUsablePCs || 0;
-
-        console.log(`Available PCs for ${appName} - ${planName}:`, result);
-        return result;
+          )?.totalUsablePCs || 0
+        );
       };
 
       // Get active plan quantities for each app and plan type
@@ -209,13 +203,13 @@ export default function SettingsPage() {
         ).length;
 
       const assignedPlanCounts = {
-        screenshotBasic: countAssignedPlans('Screenshot Capture App', 'basic'),
+        screenshotBasic: countAssignedPlans(constants.APP_CAPTURE, 'basic'),
         screenshotStandard: countAssignedPlans(
-          'Screenshot Capture App',
+          constants.APP_CAPTURE,
           'standard',
         ),
         screenshotPremium: countAssignedPlans(
-          'Screenshot Capture App',
+          constants.APP_CAPTURE,
           'premium',
         ),
         notesBasic: countAssignedPlans('Notes App', 'basic'),
@@ -225,7 +219,7 @@ export default function SettingsPage() {
 
       console.log('Assigned Plan Counts:', assignedPlanCounts);
 
-      // Validation
+      // Validation: Check for over-assignment
       const isOverAssigned =
         assignedPlanCounts.screenshotBasic >
           activePlanQuantities.screenshotBasic ||
@@ -255,10 +249,7 @@ export default function SettingsPage() {
       // Prepare payload
       const payload = {
         globalSettings,
-        pcSettingsList: pcSettingsList.map((pc) => ({
-          ...pc,
-          planName: pc.planName,
-        })),
+        pcSettingsList,
         adminEmail: session.user.email,
       };
 
@@ -269,22 +260,9 @@ export default function SettingsPage() {
         body: JSON.stringify(payload),
       });
 
-      console.log('Response Status:', response.status);
-      const responseText = await response.text();
-      console.log('Response Text:', responseText);
-
-      if (response.status === 404) {
-        showMessage('You have not purchased any plans. Cannot save settings.', {
-          vanishTime: 0,
-          blinkCount: 3,
-          button: constants.MSG.BUTTON.OK,
-          icon: constants.MSG.ICON.DANGER,
-        });
-        return;
-      }
-
       if (!response.ok) {
-        showMessage(`Failed to save settings: ${responseText}`, {
+        const errorText = await response.text();
+        showMessage(`Failed to save settings: ${errorText}`, {
           vanishTime: 0,
           blinkCount: 3,
           button: constants.MSG.BUTTON.OK,
@@ -569,82 +547,38 @@ export default function SettingsPage() {
                 }}
               >
                 {pcSettingsList.map((pc, index) => (
-                  <tr key={index}>
-                    <td className="relative">
-                      <div className="flex items-center">
-                        {/* Dropdown with Dynamic Width */}
-                        <div className="relative">
-                          <select
-                            value={pc.planName}
-                            onChange={(e) =>
-                              handlePlanAssignment(index, e.target.value)
-                            }
-                            className="p-2 border rounded transition-all duration-200 ease-in-out"
-                            style={{ width: '2rem', backgroundColor: 'white' }} // Initial narrow width and white background
-                            onFocus={(e) => {
-                              e.target.style.width = 'auto'; // Expand width on focus
-                              e.target.style.backgroundColor = 'lightgreen'; // Change background color to light green on focus
-                              setFocusedRowIndex(index); // Set the focused row index
-                            }}
-                            onBlur={(e) => {
-                              e.target.style.width = '2rem'; // Revert width on blur
-                              e.target.style.backgroundColor = 'white'; // Revert background color to white on blur
-                              setFocusedRowIndex(null); // Clear the focused row index
-                            }}
-                          >
-                            <option value="">Select Plan</option>
-                            {plans.map((plan) => (
-                              <option
-                                key={plan.purchaseId}
-                                value={plan.purchaseId}
-                              >
-                                {`${plan.planName} - [${new Date(
-                                  plan.planActivationDate,
-                                ).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })} - ${new Date(
-                                  plan.planExpiryDate,
-                                ).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })}]`}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                  <tr key={pc.uuid}>
+             
+  <td className="relative">
+  <div className="relative">
+    <select
+      value={pc.planName}
+   
+      onChange={(e) => {console.log ('pc.planName', pc.planName); handlePlanAssignment(index, e.target.value)}}
+      className="p-2 border rounded"
+    >
+<option value=""></option>
+{activePlans.map((plan) => (
+  <option key={plan.purchaseId} value={plan.planName}>
+    {`[${new Date(plan.activationDates[0]).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })} - ${new Date(plan.expiryDates[0]).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              })}] - ${plan.planName}`}
+  </option>
+))}
+    </select>
+  </div>
+</td>
 
-                        {/* Display Selected Plan for the Current Row */}
-                        {focusedRowIndex !== index && (
-                          <div className="text-sm text-gray-600 mr-2 pl-3">
-                            {(() => {
-                              const selectedPlan = plans.find(
-                                (plan) => plan.purchaseId === pc.planName,
-                              );
-                              return selectedPlan
-                                ? `${selectedPlan.planName} - [${new Date(
-                                    selectedPlan.planActivationDate,
-                                  ).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })} - ${new Date(
-                                    selectedPlan.planExpiryDate,
-                                  ).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'short',
-                                    day: 'numeric',
-                                  })}]`
-                                : 'No Plan';
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </td>
+
 
                     <td>
+                     
                       <input
                         type="text"
                         value={pc.nickName}
