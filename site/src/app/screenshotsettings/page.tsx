@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, ChangeEvent } from 'react';
+import { useState, useEffect, ChangeEvent } from 'react'; 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
 import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
+ 
 
 
 
@@ -54,6 +55,7 @@ export default function SettingsPage() {
   const { showMessage } = useMessage();
   const [helpContent, setHelpContent] = useState<string>('');
   const showHelp = (content: string) => { setHelpContent(content); };
+  const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null); {/* State for managing the focused row index */}
 
    // Fetch Settings and Plans on Load
  useEffect(() => {
@@ -397,6 +399,7 @@ const payload = {
 
   // Render Settings Page
   return (
+    
     <div className="container">
       <div className="header-container">
         <h1 className="title">Settings</h1>
@@ -565,56 +568,74 @@ const payload = {
               >
                 {pcSettingsList.map((pc, index) => (
             <tr key={index}>
-<td>
-  <select
-    value={pc.planName}
-    onChange={(e) => handlePlanAssignment(index, e.target.value)}
-    className="p-2 border rounded"
-  >
-    <option value="">Select Plan</option>
-    {plans.map((plan) => {
-      console.log('Plan Details:', plan); // Debug each plan entry
-      return (
-        <option key={plan.purchaseId} value={plan.purchaseId}>
-          {plan.planName
-            ? `${plan.planName} - [${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+
+
+
+ 
+
+<td className="relative">
+  <div className="flex items-center">
+    
+    {/* Dropdown with Dynamic Width */}
+    <div className="relative">
+      <select
+        value={pc.planName}
+        onChange={(e) => handlePlanAssignment(index, e.target.value)}
+        className="p-2 border rounded transition-all duration-200 ease-in-out"
+        style={{ width: '2rem', backgroundColor: 'white' }} // Initial narrow width and white background
+        onFocus={(e) => {
+          e.target.style.width = 'auto'; // Expand width on focus
+          e.target.style.backgroundColor = 'lightgreen'; // Change background color to light green on focus
+          setFocusedRowIndex(index); // Set the focused row index
+        }}
+        onBlur={(e) => {
+          e.target.style.width = '2rem'; // Revert width on blur
+          e.target.style.backgroundColor = 'white'; // Revert background color to white on blur
+          setFocusedRowIndex(null); // Clear the focused row index
+        }}
+      >
+        <option value="">Select Plan</option>
+        {plans.map((plan) => (
+          <option key={plan.purchaseId} value={plan.purchaseId}>
+            {`${plan.planName} - [${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+            })}]`}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    {/* Display Selected Plan for the Current Row */}
+    {focusedRowIndex !== index && (
+      <div className="text-sm text-gray-600 mr-2 pl-3">
+        {(() => {
+          const selectedPlan = plans.find((plan) => plan.purchaseId === pc.planName);
+          return selectedPlan
+            ? `${selectedPlan.planName} - [${new Date(selectedPlan.planActivationDate).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
-              })} - ${new Date(plan.planExpiryDate).toLocaleDateString('en-US', {
+              })} - ${new Date(selectedPlan.planExpiryDate).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',
               })}]`
-            : 'Invalid Plan'}
-        </option>
-      );
-    })}
-  </select>
-
-  {/* Display Selected Plan */}
-  <div className="mt-2 text-sm text-gray-600">
-    {(() => {
-      const selectedPlan = plans.find((plan) => plan.purchaseId === pc.planName);
-      return selectedPlan
-        ? `${selectedPlan.planName} - [${new Date(selectedPlan.planActivationDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })} - ${new Date(selectedPlan.planExpiryDate).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-          })}]`
-        : 'No Plan';
-    })()}
+            : 'No Plan';
+        })()}
+      </div>
+    )}
   </div>
 </td>
 
 
 
-
-
+ 
 
                     <td>
                       <input
@@ -783,7 +804,7 @@ const payload = {
                             e.target.checked,
                           )
                         }
-                        style={{ width: '24px', height: '24px' }} // Adjust size as needed
+                        style={{ color: 'lightgreen', width: '24px', height: '24px' }} // Adjust size as needed
                       />
                     </td>
 
