@@ -7,7 +7,7 @@ import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
 import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
-
+//New
 type PcSetting = {
   uuid: string;
   adminEmail: string;
@@ -165,10 +165,6 @@ console.log('Plans:', plans);
 
 
 
-
-
-
-
 const handleSave = async () => {
   showMessage('', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.NONE, icon: constants.MSG.ICON.IMPORTANT });
 
@@ -204,37 +200,21 @@ const handleSave = async () => {
     if (!aggregatedPlansResponse.ok) throw new Error('Failed to fetch aggregated plans');
 
     const aggregatedPlansData = await aggregatedPlansResponse.json();
-    const aggregatedPlans = aggregatedPlansData.plans || [];
+    const aggregatedPlans: AggregatedPlan[] = aggregatedPlansData.plans || [];
 
     console.log('Aggregated Plans:', aggregatedPlans);
 
-    // Step 3: Fetch purchase records
-    const purchaseRecordsResponse = await fetch(`/api/purchaseRecords?adminEmail=${session.user.email}`);
-    if (!purchaseRecordsResponse.ok) {
-      const errorText = await purchaseRecordsResponse.text();
-      showMessage(`Failed to fetch purchase records: ${errorText}`, { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
-      return;
-    }
+    // Step 3: Fetch the latest purchase records
+    const purchaseRecordsResponse = await fetch(`/api/purchases?adminEmail=${session.user.email}`);
+    if (!purchaseRecordsResponse.ok) throw new Error('Failed to fetch purchase records');
 
     const purchaseRecordsData = (await purchaseRecordsResponse.json()) as { records: PurchaseRecord[] };
     const purchaseRecords: PurchaseRecord[] = purchaseRecordsData.records || [];
 
     console.log('Purchase Records:', purchaseRecords);
 
-    // Create a lookup map for purchaseId to planName
-    const purchaseIdToPlanName = new Map<string, string>();
-    purchaseRecords.forEach((record) => {
-      purchaseIdToPlanName.set(record.purchaseId, record.planName.trim().toLowerCase());
-    });
-
-    console.log('PurchaseId to PlanName Map:', purchaseIdToPlanName);
-
     // Filter out PCs where either captureEnabledByDeveloper or captureEnabledByAdmin is false
-    const activePcSettings = pcSettingsList.filter((pc) => {
-      const isActive = pc.captureEnabledByDeveloper !== false && pc.captureEnabledByAdmin !== false;
-      console.log('PC setting:', pc.nickName, 'isActive:', isActive);
-      return isActive;
-    });
+    const activePcSettings = pcSettingsList.filter((pc) => pc.captureEnabledByDeveloper !== false && pc.captureEnabledByAdmin !== false);
     console.log('Active PC Settings:', activePcSettings);
 
     // Initialize assignedPlanCounts with an explicit type
@@ -242,20 +222,21 @@ const handleSave = async () => {
 
     // Count assigned plans grouped by planName
     activePcSettings.forEach((pc) => {
-      const planName = purchaseIdToPlanName.get(pc.planName) || 'unknown';
-      assignedPlanCounts[planName] = (assignedPlanCounts[planName] || 0) + 1;
+      const purchaseId = pc.planName; // planName field holds the purchaseId
+      const record = purchaseRecords.find((record) => record.purchaseId === purchaseId);
+
+      if (record) {
+        const planName = record.planName.trim().toLowerCase();
+        assignedPlanCounts[planName] = (assignedPlanCounts[planName] || 0) + 1;
+      }
     });
 
     console.log('Assigned Plan Counts:', assignedPlanCounts);
 
     // Function to get the total usable PCs for a plan
     const getTotalUsablePCs = (planName: string) => {
-      console.log('getTotalUsablePCs called with planName:', planName);
-      const result = aggregatedPlans.find((plan: AggregatedPlan) => plan.planName === planName);
-      console.log('Matching plan from aggregatedPlans:', result);
-      const totalUsablePCs = result?.totalUsablePCs || 0;
-      console.log('Total usable PCs for plan:', planName, '=', totalUsablePCs);
-      return totalUsablePCs;
+      const result = aggregatedPlans.find((plan) => plan.planName.trim().toLowerCase() === planName);
+      return result?.totalUsablePCs || 0;
     };
 
     // Create a detailed report for each plan
@@ -296,9 +277,16 @@ const handleSave = async () => {
     setIsModified(false);
   } catch (error) {
     console.error('Error details:', error);
-    showMessage('An unexpected error occurred. Please try again.', { vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
+    showMessage(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+      vanishTime: 0,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.DANGER,
+    });
   }
 };
+
+
 
 
 
