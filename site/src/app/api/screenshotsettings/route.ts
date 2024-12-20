@@ -13,10 +13,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Admin email is required' }, { status: 400 });
     }
 
-    // Fetch global settings, PC settings, and active purchase plans
+    // Fetch global settings, PC settings (sorted by nickName), and active purchase plans
     const [globalSettings, pcSettings, activePlans] = await Promise.all([
       SysFileSettingsGlobal.findOne({ adminEmail }),
-      SysFileSettingsPCWise.find({ adminEmail }),
+      SysFileSettingsPCWise.find({ adminEmail }).sort({ nickName: 1 }), // Sort in ascending order by nickName
       purchaseRecords.find({ adminEmail, planExpiryDate: { $gte: new Date() } }),
     ]);
 
@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ message: 'Failed to fetch settings', error: error.message }, { status: 500 });
   }
 }
+
 
 export async function POST(req: NextRequest) {
   await dbConnect();
@@ -48,54 +49,54 @@ export async function POST(req: NextRequest) {
       //{ upsert: true }          // Insert if not exists. YOU MUST NOT ENABLE THIS. We will create only when the first time admin purchase the plan. Not only that it prevents globalsettings save.
     );
     
-    // await Promise.all(
-    //   pcSettingsList.map(async (pcSetting: any) => {
-    //     const {
-    //       uuid,
-    //       adminEmail,
-    //       nickName,
-    //       planName,
-    //       fileType,
-    //       videoLength,
-    //       captureInterval,
-    //       fileQuality,
-    //       clientNotificationInterval,
-    //       lastCapturedTime,
-    //       storageUsed,
-    //       captureEnabledByDeveloper,
-    //       captureEnabledByAdmin,
-    //       sessions,
-    //       registrationTimestamp,
-    //       osVersion,
-    //       ipAddress,
-    //       devInfo,
-    //     } = pcSetting;
+    await Promise.all(
+      pcSettingsList.map(async (pcSetting: any) => {
+        const {
+          uuid,
+          adminEmail,
+          nickName,
+          planName,
+          fileType,
+          videoLength,
+          captureInterval,
+          fileQuality,
+          clientNotificationInterval,
+          lastCapturedTime,
+          storageUsed,
+          captureEnabledByDeveloper,
+          captureEnabledByAdmin,
+          sessions,
+          registrationTimestamp,
+          osVersion,
+          ipAddress,
+          devInfo,
+        } = pcSetting;
 
-    //     await SysFileSettingsPCWise.updateOne(
-    //       { uuid, adminEmail },
-    //       {
-    //         uuid,
-    //         adminEmail,
-    //         nickName,
-    //         planName,
-    //         fileType,
-    //         videoLength,
-    //         captureInterval,
-    //         fileQuality,
-    //         clientNotificationInterval,
-    //         lastCapturedTime,
-    //         storageUsed,
-    //         captureEnabledByDeveloper,
-    //         captureEnabledByAdmin,
-    //         sessions,
-    //         registrationTimestamp,
-    //         osVersion,
-    //         ipAddress,
-    //         devInfo,
-    //       }
-    //     );
-    //   })
-    // );
+        await SysFileSettingsPCWise.updateOne(
+          { uuid, adminEmail },
+          {
+            uuid,
+            adminEmail,
+            nickName,
+            planName,
+            fileType,
+            videoLength,
+            captureInterval,
+            fileQuality,
+            clientNotificationInterval,
+            lastCapturedTime,
+            storageUsed,
+            captureEnabledByDeveloper,
+            captureEnabledByAdmin,
+            sessions,
+            registrationTimestamp,
+            osVersion,
+            ipAddress,
+            devInfo,
+          }
+        );
+      })
+    );
 
     return NextResponse.json({ message: 'Settings saved successfully' });
   } catch (error) {

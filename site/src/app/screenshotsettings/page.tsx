@@ -8,7 +8,6 @@ import { useMessage } from '@/context/MessageContext';
 import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
 
-
 type GlobalSettings = {
   storagePath: string;
   dateFormat: string;
@@ -31,7 +30,6 @@ type PcSetting = {
   captureEnabledByDeveloper: boolean;
   isModified?: boolean;  // Add this line
 };
-
 
 type Plan = {
   purchaseId: string;
@@ -58,20 +56,15 @@ type AggregatedPlan = {
   expiryDates: Date[];
 };
 
-
 type PurchaseRecord = {
   purchaseId: string;
   planName: string;
 };
 
-
 export default function SettingsPage() {
   const { data: session } = useSession();
-const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
-
-  // const [activePlans, setActivePlans] = useState([]);
+  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const [activePlans, setActivePlans] = useState<ActivePlan[]>([]);
-
   const [plans, setPlans] = useState<Plan[]>([]);
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
@@ -85,7 +78,7 @@ const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
   const showHelp = (content: string) => {setHelpContent(content);};
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
 
-  useEffect(() => {
+useEffect(() => {
     const fetchSettingsAndPlans = async () => {
       if (!session?.user?.email) return;
 
@@ -149,10 +142,73 @@ console.log('Plans:', plans);
     };
 
     fetchSettingsAndPlans();
-  }, [session]);
+}, [session]);
+   
+//fnNeed. Handle Delettion of the pcSetting row.  
+const handleDelete = async (uuid: string, nickName: string) => {
+    const userInput = prompt(
+      `Type the nickname "${nickName}" to confirm deletion:
+      
+Remember:
+It will delete the client settings permanently. The client app will also be deleted automatically when that PC starts next time. If you want to view the screenshots again, you will need to reinstall the client app on that PC.
 
-  
-  // Handle Global Settings Change
+Tip: You can Off the Capture instead of deleting the client.`,
+    );
+
+    if (userInput !== nickName) {
+      showMessage('Deletion cancelled or nickname did not match.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/screenshotsettings?uuid=${uuid}&adminEmail=${session?.user?.email}`,
+        {
+          method: 'DELETE',
+        },
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        showMessage(`Failed to delete client: ${errorText}`, {
+          vanishTime: 0,
+          blinkCount: 3,
+          button: constants.MSG.BUTTON.OK,
+          icon: constants.MSG.ICON.DANGER,
+        });
+        return;
+      }
+
+      // Update the local state to remove the deleted record
+      const updatedSettings = pcSettingsList.filter((pc) => pc.uuid !== uuid);
+      setPcSettingsList(updatedSettings);
+
+      showMessage(
+        `Client with nickname "${nickName}" has been deleted successfully.`,
+        {
+          vanishTime: 3000,
+          blinkCount: 0,
+          button: constants.MSG.BUTTON.OK,
+          icon: 'important',
+        },
+      );
+    } catch (error) {
+      console.error('Error details:', error);
+      showMessage('An unexpected error occurred. Please try again.', {
+        vanishTime: 0,
+        blinkCount: 2,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.DANGER,
+      });
+    }
+};
+
+// fnNeed. Handle Global Settings Change.
 const handleGlobalChange = async (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
   const { name, value } = e.target;
   const updatedSettings = { ...globalSettings, [name]: value };
@@ -170,7 +226,7 @@ const handleGlobalChange = async (e: ChangeEvent<HTMLInputElement | HTMLSelectEl
   }
 };
 
-
+// fnNeed. Post request for global settings.
 const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   try {
     const response = await fetch('/api/screenshotsettings', {
@@ -212,8 +268,6 @@ const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   }
 };
 
-
-
   const handlePlanAssignment = (index: number, selectedPurchaseId: string) => {
   setPcSettingsList((prev) => {
     const newSettings = [...prev];
@@ -226,7 +280,7 @@ const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   setIsModified(true);
 };
 
-  const getAppNameByPlan = (planName: string): string | null => {
+const getAppNameByPlan = (planName: string): string | null => {
     for (const app in productPricing) {
       for (const plan in productPricing[app]) {
         if (plan === planName) {
@@ -235,10 +289,6 @@ const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
       }
     }
     return null;
-  };
-
-  const handleSaveAll = async () => {
-  // Logic to save all modified settings
 };
 
 const handleSaveRow = async (index: number) => {
@@ -273,9 +323,6 @@ const handleSaveRow = async (index: number) => {
     });
   }
 };
-
-
-
 
 // const handleSave = async () => {
 //   showMessage('', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.NONE, icon: constants.MSG.ICON.IMPORTANT });
@@ -397,90 +444,26 @@ const handleSaveRow = async (index: number) => {
 //     });
 //   }
 // };
-
-
  
-
-  const isPlanActive = (date: string) => {
+const isPlanActive = (date: string) => {
     const parsedDate = new Date(date);
     return !isNaN(parsedDate.getTime()) && parsedDate >= new Date();
-  };
+};
 
-  const handleDelete = async (uuid: string, nickName: string) => {
-    const userInput = prompt(
-      `Type the nickname "${nickName}" to confirm deletion:`,
-    );
-
-    if (userInput !== nickName) {
-      showMessage('Deletion cancelled or nickname did not match.', {
-        vanishTime: 0,
-        blinkCount: 2,
-        button: constants.MSG.BUTTON.OK,
-        icon: constants.MSG.ICON.DANGER,
-      });
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `/api/screenshotsettings?uuid=${uuid}&adminEmail=${session?.user?.email}`,
-        {
-          method: 'DELETE',
-        },
-      );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        showMessage(`Failed to delete client: ${errorText}`, {
-          vanishTime: 0,
-          blinkCount: 3,
-          button: constants.MSG.BUTTON.OK,
-          icon: constants.MSG.ICON.DANGER,
-        });
-        return;
-      }
-
-      // Update the local state to remove the deleted record
-      const updatedSettings = pcSettingsList.filter((pc) => pc.uuid !== uuid);
-      setPcSettingsList(updatedSettings);
-
-      showMessage(
-        `Client with nickname "${nickName}" has been deleted successfully.`,
-        {
-          vanishTime: 3000,
-          blinkCount: 0,
-          button: constants.MSG.BUTTON.OK,
-          icon: 'important',
-        },
-      );
-    } catch (error) {
-      console.error('Error details:', error);
-      showMessage('An unexpected error occurred. Please try again.', {
-        vanishTime: 0,
-        blinkCount: 2,
-        button: constants.MSG.BUTTON.OK,
-        icon: constants.MSG.ICON.DANGER,
-      });
-    }
-  };
-
-
-  // Handle PC-Specific Settings Change
+// Handle PC-Specific Settings Change
 const handlePcChange = (index: number, field: keyof PcSetting, value: string | number | boolean) => {
   const updatedSettings = [...pcSettingsList];
   updatedSettings[index] = { ...updatedSettings[index], [field]: value, isModified: true };
   setPcSettingsList(updatedSettings);
 };
 
-
-
-  // Render Loading State
-  if (isLoading) {
+// Render Loading State
+if (isLoading) {
     return <p>Loading...</p>;
-  }
+}
 
-  // Render Settings Page
-  return (
+// Render Settings Page
+return (
     <div className="container">
       <div className="header-container">
         <h1 className="title">Settings</h1>
@@ -564,7 +547,7 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
             {/* Table with Clickable Headers */}
             <div className="table-container"></div>{' '}
             <table>
-              <thead className="text-lg font-semibold">
+             <thead className="text-lg font-semibold">
                 <tr>
                   <th
                     onClick={() =>
@@ -585,7 +568,7 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                   <th
                     onClick={() =>
                       showHelp(
-                        'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive.',
+                        'The PC/User name, which you can easily remeber. Screenshot files will be stored in a folder with this name in Google Drive. Leave empty store files under PC-s original name (Ie. Host name).',
                       )
                     }
                   >
@@ -598,9 +581,18 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                       )
                     }
                   >
-                    Screenshot Upload Type{' '}
+                    Capture Type{' '}
                   </th>
-                  {/* <th onClick={() =>showHelp('It applies only when you select "video" as your file type. Short videos are recommended, such as 5-second clips.',)}>Video Length</th> */}
+                  <th
+                    onClick={() =>
+                      showHelp(
+                        'Specify the video length you want to capture and upload. If you select 5, a video will be captured for 5 seconds. It applies only when you select "video" as your capture type. Short videos are recommended, such as 5-second clips.',
+                      )
+                    }
+                  >
+                    Video Length{' '}
+                  </th>
+                  
                   <th
                     onClick={() =>
                       showHelp(
@@ -638,7 +630,7 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                   <th
                     onClick={() =>
                       showHelp(
-                        'Delete the client permanently. The client app will also be deleted automatically when that PC starts next. If you want to view the screenshots again, you will need to reinstall the client app on that PC.',
+                        'It will delete the client settings permanently. The client app will also be deleted automatically when that PC starts next time. If you want to view the screenshots again, you will need to reinstall the client app on that PC.',
                       )
                     }
                   >
@@ -646,12 +638,14 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                   </th>
                 </tr>
               </thead>
+
               <tbody
                 style={{
                   fontFamily: "'Verdana', sans-serif, 'Arial', 'helvetica'",
                 }}
               >
-                {pcSettingsList.map((pc, index) => (
+                {pcSettingsList.map((pc, index) => (                
+                  
                   <tr key={pc.uuid}>
              
               {/* Save Button */}
@@ -714,19 +708,36 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                         className="p-2 border rounded"
                       >
                         <option value="image">Image</option>
-                        {/* <option value="video">Video</option> */}
+                        <option value="video">Video</option>
                       </select>
                     </td>
-                    {/* <td>
-                      <input
-                        type="number"
-                        value={pc.fileType === 'video' ? pc.videoLength : ''}
-                        onChange={(e) =>
-                          handlePcChange(index, 'videoLength', e.target.value)
+                   <td>
+  <select
+    value={pc.fileType === 'video' ? pc.videoLength : ''}
+     onClick={() =>
+                          showHelp(
+                            'Specify the video length you want to capture and upload. If you select 5, a video will be captured for 5 seconds. It applies only when you select "video" as your capture type. Short videos are recommended, such as 5-second clips.',
+                          )
                         }
-                        disabled={pc.fileType !== 'video'}
-                      />
-                    </td> */}
+    onChange={(e) => handlePcChange(index, 'videoLength', parseInt(e.target.value, 10))}
+    disabled={pc.fileType !== 'video'}
+    className="p-2 border rounded"
+  >
+    <option value={1}>1 Second</option>
+    <option value={2}>2 Seconds</option>
+    <option value={3}>3 Seconds</option>
+    <option value={4}>4 Seconds</option>
+    <option value={5}>5 Seconds</option>
+    <option value={6}>6 Seconds</option>
+    <option value={7}>7 Seconds</option>
+    <option value={8}>8 Seconds</option>
+    <option value={9}>9 Seconds</option>
+    <option value={10}>10 Seconds</option>
+    <option value={15}>15 Seconds</option>
+    <option value={20}>20 Seconds</option>
+  </select>
+</td>
+
                     <td>
                       <select
                         value={pc.captureInterval}
@@ -735,6 +746,7 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                             'The gap between one capture and the next. If you select 60, a screenshot will be captured every 60 seconds.',
                           )
                         }
+                        
                         onChange={(e) =>
                           handlePcChange(
                             index,
@@ -759,19 +771,18 @@ const handlePcChange = (index: number, field: keyof PcSetting, value: string | n
                         <option value={20}>20 Seconds</option>
                         <option value={30}>30 Seconds</option>
                         <option value={40}>40 Seconds</option>
-                        <option value={50}>50 Seconds</option>
-                        <option value={60}>60 Seconds</option>
+                        <option value={50}>50 Seconds</option>                        
 
                         {/* Minutes */}
                         <option value={60}>1 Minute</option>
                         <option value={120}>2 Minutes</option>
-                        <option value={180}>3 Minutes</option>
-                        <option value={240}>4 Minutes</option>
+                        <option value={180}>3 Minutes</option>                        
                         <option value={300}>5 Minutes</option>
                         <option value={600}>10 Minutes</option>
+                        <option value={900}>15 Minutes</option>
                         <option value={1200}>20 Minutes</option>
                         <option value={1800}>30 Minutes</option>
-                        <option value={2400}>45 Minutes</option>
+                        <option value={2700}>45 Minutes</option>
 
                         {/* Hours */}
                         <option value={3600}>1 Hour</option>
