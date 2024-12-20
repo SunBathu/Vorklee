@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     await SysFileSettingsGlobal.updateOne(
       { adminEmail },           // Filter by adminEmail
       { $set: globalSettings }, // Update fields
-      { upsert: true }          // Insert if not exists
+      //{ upsert: true }          // Insert if not exists. YOU MUST NOT ENABLE THIS. We will create only when the first time admin purchase the plan. Not only that it prevents globalsettings save.
     );
     
     // await Promise.all(
