@@ -103,7 +103,7 @@ useEffect(() => {
   }
 }, [session]);
 
-//fnNeed. Handle Delettion of the pcSetting row.  
+//fnNeed. Delete the row.
 const handleDelete = async (uuid: string, nickName: string) => {
     const userInput = prompt(
       `Type the nickname "${nickName}" to confirm deletion:
@@ -227,7 +227,7 @@ const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   }
 };
 
-//fnNeed. Save the row.
+//fnNeed. Save pc settings from the row.
 const handleSaveRow = async (index: number) => {
   const pcToSave = pcSettingsList[index];
 
@@ -432,12 +432,58 @@ const isPlanActive = (date: string) => {
     return !isNaN(parsedDate.getTime()) && parsedDate >= new Date();
 };
 
-// Handle PC-Specific Settings Change
-const handlePcChange = (index: number, field: keyof PcSetting, value: string | number | boolean) => {
-  const updatedSettings = [...pcSettingsList];
-  updatedSettings[index] = { ...updatedSettings[index], [field]: value, isModified: true };
-  setPcSettingsList(updatedSettings);
+// Save PC-Specific Settings Part 1
+//fnNeed: Debounce function to limit the frequency of save requests
+const debounce = (func: (...args: any[]) => void, delay: number) => {
+  let timer: NodeJS.Timeout;
+  return (...args: any[]) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => func(...args), delay);
+  };
 };
+
+// Save PC-Specific Settings Part 2
+//fnNeed: Debounced version of the save function
+const debouncedSave = debounce(async (updatedPc) => {
+  try {
+    const response = await fetch('/api/screenshotsettings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pcSettingsList: [updatedPc], adminEmail: session?.user?.email }),
+    });
+
+    if (response.ok) {
+      showMessage('Settings saved successfully.', {
+        vanishTime: 3000,
+        blinkCount: 0,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.SUCCESS,
+      });
+    } else {
+      throw new Error('Failed to save settings.');
+    }
+  } catch (error) {
+    console.error('Save Error:', error);
+    showMessage('An unexpected error occurred. Please try again.', {
+      vanishTime: 0,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.DANGER,
+    });
+  }
+}, 1000); // Debounce delay of 1 second
+
+// Save PC-Specific Settings Part 3
+//fnNeed: Function to handle changes and auto-save
+const handlePcChange = (index: number, field: string, value: any) => {
+  const updatedSettings = [...pcSettingsList];
+  updatedSettings[index] = { ...updatedSettings[index], [field]: value };
+  setPcSettingsList(updatedSettings);
+
+  // Auto-save the updated row
+  debouncedSave(updatedSettings[index]);
+};
+
 
 // Render Loading State
 if (isLoading) {
@@ -671,16 +717,14 @@ return (
 
 
 
-                    <td>
-                     
-                      <input
-                        type="text"
-                        value={pc.nickName}
-                        onChange={(e) =>
-                          handlePcChange(index, 'nickName', e.target.value)
-                        }
-                      />
-                    </td>
+             <td>
+  <input
+    type="text"
+    value={pc.nickName}
+    onChange={(e) => handlePcChange(index, 'nickName', e.target.value)}
+    className="p-2 border rounded"
+  />
+</td>
                     <td>
                       <select
                         value={pc.fileType}
