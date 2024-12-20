@@ -7,7 +7,14 @@ import { useSession } from 'next-auth/react';
 import { useMessage } from '@/context/MessageContext';
 import * as constants from '@/utils/constants';
 import { productPricing } from '@/utils/pricing';
-//New
+
+
+type GlobalSettings = {
+  storagePath: string;
+  dateFormat: string;
+  whichFoldersToDeleteWhenStorageFull: string;
+};
+
 type PcSetting = {
   uuid: string;
   adminEmail: string;
@@ -22,7 +29,9 @@ type PcSetting = {
   storageUsed: string;
   captureEnabledByAdmin: boolean;
   captureEnabledByDeveloper: boolean;
+  isModified?: boolean;  // Add this line
 };
+
 
 type Plan = {
   purchaseId: string;
@@ -58,7 +67,8 @@ type PurchaseRecord = {
 
 export default function SettingsPage() {
   const { data: session } = useSession();
-  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
+const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
+
   // const [activePlans, setActivePlans] = useState([]);
   const [activePlans, setActivePlans] = useState<ActivePlan[]>([]);
 
@@ -118,7 +128,8 @@ const fetchAggregatedPlans = async () => {
 setGlobalSettings(data.globalSettings || {});
 console.log('Global Settings:', data.globalSettings);
 
-setPcSettingsList(data.pcSettings || []);
+setPcSettingsList(data.pcSettings.map((pc: PcSetting) => ({ ...pc, isModified: false })));
+
 console.log('PC Settings List:', data.pcSettings);
 
 // setPlans(plans || []);
@@ -139,6 +150,69 @@ console.log('Plans:', plans);
 
     fetchSettingsAndPlans();
   }, [session]);
+
+  
+  // Handle Global Settings Change
+const handleGlobalChange = async (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const { name, value } = e.target;
+  const updatedSettings = { ...globalSettings, [name]: value };
+  setGlobalSettings(updatedSettings);
+
+  if (session?.user?.email) {
+    await handleSaveGlobal(updatedSettings);
+  } else {
+    showMessage('You must be logged in to save settings.', {
+      vanishTime: 3000,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.DANGER,
+    });
+  }
+};
+
+
+const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
+  try {
+    const response = await fetch('/api/screenshotsettings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ globalSettings: updatedSettings, adminEmail: session?.user?.email }),
+    });
+
+    if (response.ok) {
+      showMessage('Global settings saved successfully.', {
+        vanishTime: 3000,
+        blinkCount: 0,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.SUCCESS,
+      });
+    } else {
+      const errorData = await response.json();
+      console.error('Error response status:', response.status);
+      console.error('Error response data:', errorData);
+      throw new Error(errorData.message || 'Failed to save global settings.');
+    }
+  } catch (error) {
+    let errorMessage = 'An unexpected error occurred.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = JSON.stringify(error);
+    }
+
+    console.error('Save Error:', errorMessage);
+    showMessage(`An error occurred: ${errorMessage}`, {
+      vanishTime: 0,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.DANGER,
+    });
+  }
+};
+
+
 
   const handlePlanAssignment = (index: number, selectedPurchaseId: string) => {
   setPcSettingsList((prev) => {
@@ -163,121 +237,35 @@ console.log('Plans:', plans);
     return null;
   };
 
+  const handleSaveAll = async () => {
+  // Logic to save all modified settings
+};
 
-
-const handleSave = async () => {
-  showMessage('', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.NONE, icon: constants.MSG.ICON.IMPORTANT });
-
-  if (!session?.user?.email) {
-    showMessage('You are not logged in. Please log in to save settings.', { vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.ALERT });
-    return;
-  }
-
-  // Validate that each PC setting has a UUID
-  if (pcSettingsList.some((pc) => !pc.uuid)) {
-    showMessage('One or more PC settings are missing a UUID.', { vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
-    return;
-  }
+const handleSaveRow = async (index: number) => {
+  const pcToSave = pcSettingsList[index];
 
   try {
-    // Step 1: Save the current pcSettingsList without planName (purchaseId)
-    const pcSettingsWithoutPlans = pcSettingsList.map(({ planName, ...rest }) => rest);
-
-    const savePcSettingsResponse = await fetch('/api/screenshotsettings', {
+    const response = await fetch('/api/screenshotsettings', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pcSettingsList: pcSettingsWithoutPlans, adminEmail: session.user.email }),
+      body: JSON.stringify({ pcSettings: [pcToSave], adminEmail: session?.user?.email }),
     });
 
-    if (!savePcSettingsResponse.ok) {
-      const errorText = await savePcSettingsResponse.text();
-      showMessage(`Failed to save settings: ${errorText}`, { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
-      return;
+    if (response.ok) {
+      const updatedSettings = [...pcSettingsList];
+      updatedSettings[index].isModified = false;
+      setPcSettingsList(updatedSettings);
+      showMessage('Settings saved successfully.', {
+        vanishTime: 3000,
+        blinkCount: 0,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.SUCCESS,
+      });
+    } else {
+      throw new Error('Failed to save settings.');
     }
-
-    // Step 2: Fetch the latest aggregated plans
-    const aggregatedPlansResponse = await fetch(`/api/aggregatedPlans?adminEmail=${session.user.email}`);
-    if (!aggregatedPlansResponse.ok) throw new Error('Failed to fetch aggregated plans');
-
-    const aggregatedPlansData = await aggregatedPlansResponse.json();
-    const aggregatedPlans: AggregatedPlan[] = aggregatedPlansData.plans || [];
-
-    console.log('Aggregated Plans:', aggregatedPlans);
-
-    // Step 3: Fetch the latest purchase records
-    const purchaseRecordsResponse = await fetch(`/api/purchases?adminEmail=${session.user.email}`);
-    if (!purchaseRecordsResponse.ok) throw new Error('Failed to fetch purchase records');
-
-    const purchaseRecordsData = (await purchaseRecordsResponse.json()) as { records: PurchaseRecord[] };
-    const purchaseRecords: PurchaseRecord[] = purchaseRecordsData.records || [];
-
-    console.log('Purchase Records:', purchaseRecords);
-
-    // Filter out PCs where either captureEnabledByDeveloper or captureEnabledByAdmin is false
-    const activePcSettings = pcSettingsList.filter((pc) => pc.captureEnabledByDeveloper !== false && pc.captureEnabledByAdmin !== false);
-    console.log('Active PC Settings:', activePcSettings);
-
-    // Initialize assignedPlanCounts with an explicit type
-    const assignedPlanCounts: { [key: string]: number } = {};
-
-    // Count assigned plans grouped by planName
-    activePcSettings.forEach((pc) => {
-      const purchaseId = pc.planName; // planName field holds the purchaseId
-      const record = purchaseRecords.find((record) => record.purchaseId === purchaseId);
-
-      if (record) {
-        const planName = record.planName.trim().toLowerCase();
-        assignedPlanCounts[planName] = (assignedPlanCounts[planName] || 0) + 1;
-      }
-    });
-
-    console.log('Assigned Plan Counts:', assignedPlanCounts);
-
-    // Function to get the total usable PCs for a plan
-    const getTotalUsablePCs = (planName: string) => {
-      const result = aggregatedPlans.find((plan) => plan.planName.trim().toLowerCase() === planName);
-      return result?.totalUsablePCs || 0;
-    };
-
-    // Create a detailed report for each plan
-    let isOverAssigned = false;
-    let message = '';
-
-    Object.keys(assignedPlanCounts).forEach((planName) => {
-      const allowed = getTotalUsablePCs(planName);
-      const assigned = assignedPlanCounts[planName];
-      const status = assigned > allowed ? 'Exceeds' : 'Ok';
-      if (status === 'Exceeds') isOverAssigned = true;
-
-      message += `Plan: ${planName.padEnd(10)} Allowed = ${allowed.toString().padEnd(5)} Assigned = ${assigned.toString().padEnd(5)} ${status}<br />`;
-    });
-
-    // Show detailed help message
-    showHelp(message);
-
-    if (isOverAssigned) {
-      showMessage('Refer to the info area for details.', { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
-      return;
-    }
-
-    // Step 4: Save the pcSettingsList with the planName (purchaseId) included
-    const saveAssignedPlansResponse = await fetch('/api/screenshotsettings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pcSettingsList, adminEmail: session.user.email }),
-    });
-
-    if (!saveAssignedPlansResponse.ok) {
-      const errorText = await saveAssignedPlansResponse.text();
-      showMessage(`Failed to save assigned plans: ${errorText}`, { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
-      return;
-    }
-
-    showMessage('Settings and assigned plans saved successfully.', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.SUCCESS });
-    setIsModified(false);
   } catch (error) {
-    console.error('Error details:', error);
-    showMessage(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+    showMessage('An unexpected error occurred. Please try again.', {
       vanishTime: 0,
       blinkCount: 2,
       button: constants.MSG.BUTTON.OK,
@@ -289,8 +277,129 @@ const handleSave = async () => {
 
 
 
+// const handleSave = async () => {
+//   showMessage('', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.NONE, icon: constants.MSG.ICON.IMPORTANT });
+
+//   if (!session?.user?.email) {
+//     showMessage('You are not logged in. Please log in to save settings.', { vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.ALERT });
+//     return;
+//   }
+
+//   // Validate that each PC setting has a UUID
+//   if (pcSettingsList.some((pc) => !pc.uuid)) {
+//     showMessage('One or more PC settings are missing a UUID.', { vanishTime: 0, blinkCount: 2, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
+//     return;
+//   }
+
+//   try {
+//     // Step 1: Save the current pcSettingsList without planName (purchaseId)
+//     const pcSettingsWithoutPlans = pcSettingsList.map(({ planName, ...rest }) => rest);
+
+//     const savePcSettingsResponse = await fetch('/api/screenshotsettings', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ pcSettingsList: pcSettingsWithoutPlans, adminEmail: session.user.email }),
+//     });
+
+//     if (!savePcSettingsResponse.ok) {
+//       const errorText = await savePcSettingsResponse.text();
+//       showMessage(`Failed to save settings: ${errorText}`, { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
+//       return;
+//     }
+
+//     // Step 2: Fetch the latest aggregated plans
+//     const aggregatedPlansResponse = await fetch(`/api/aggregatedPlans?adminEmail=${session.user.email}`);
+//     if (!aggregatedPlansResponse.ok) throw new Error('Failed to fetch aggregated plans');
+
+//     const aggregatedPlansData = await aggregatedPlansResponse.json();
+//     const aggregatedPlans: AggregatedPlan[] = aggregatedPlansData.plans || [];
+
+//     console.log('Aggregated Plans:', aggregatedPlans);
+
+//     // Step 3: Fetch the latest purchase records
+//     const purchaseRecordsResponse = await fetch(`/api/purchases?adminEmail=${session.user.email}`);
+//     if (!purchaseRecordsResponse.ok) throw new Error('Failed to fetch purchase records');
+
+//     const purchaseRecordsData = (await purchaseRecordsResponse.json()) as { records: PurchaseRecord[] };
+//     const purchaseRecords: PurchaseRecord[] = purchaseRecordsData.records || [];
+
+//     console.log('Purchase Records:', purchaseRecords);
+
+//     // Filter out PCs where either captureEnabledByDeveloper or captureEnabledByAdmin is false
+//     const activePcSettings = pcSettingsList.filter((pc) => pc.captureEnabledByDeveloper !== false && pc.captureEnabledByAdmin !== false);
+//     console.log('Active PC Settings:', activePcSettings);
+
+//     // Initialize assignedPlanCounts with an explicit type
+//     const assignedPlanCounts: { [key: string]: number } = {};
+
+//     // Count assigned plans grouped by planName
+//     activePcSettings.forEach((pc) => {
+//       const purchaseId = pc.planName; // planName field holds the purchaseId
+//       const record = purchaseRecords.find((record) => record.purchaseId === purchaseId);
+
+//       if (record) {
+//         const planName = record.planName.trim().toLowerCase();
+//         assignedPlanCounts[planName] = (assignedPlanCounts[planName] || 0) + 1;
+//       }
+//     });
+
+//     console.log('Assigned Plan Counts:', assignedPlanCounts);
+
+//     // Function to get the total usable PCs for a plan
+//     const getTotalUsablePCs = (planName: string) => {
+//       const result = aggregatedPlans.find((plan) => plan.planName.trim().toLowerCase() === planName);
+//       return result?.totalUsablePCs || 0;
+//     };
+
+//     // Create a detailed report for each plan
+//     let isOverAssigned = false;
+//     let message = '';
+
+//     Object.keys(assignedPlanCounts).forEach((planName) => {
+//       const allowed = getTotalUsablePCs(planName);
+//       const assigned = assignedPlanCounts[planName];
+//       const status = assigned > allowed ? 'Exceeds' : 'Ok';
+//       if (status === 'Exceeds') isOverAssigned = true;
+
+//       message += `Plan: ${planName.padEnd(10)} Allowed = ${allowed.toString().padEnd(5)} Assigned = ${assigned.toString().padEnd(5)} ${status}<br />`;
+//     });
+
+//     // Show detailed help message
+//     showHelp(message);
+
+//     if (isOverAssigned) {
+//       showMessage('Refer to the info area for details.', { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
+//       return;
+//     }
+
+//     // Step 4: Save the pcSettingsList with the planName (purchaseId) included
+//     const saveAssignedPlansResponse = await fetch('/api/screenshotsettings', {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ pcSettingsList, adminEmail: session.user.email }),
+//     });
+
+//     if (!saveAssignedPlansResponse.ok) {
+//       const errorText = await saveAssignedPlansResponse.text();
+//       showMessage(`Failed to save assigned plans: ${errorText}`, { vanishTime: 0, blinkCount: 3, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.DANGER });
+//       return;
+//     }
+
+//     showMessage('Settings and assigned plans saved successfully.', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.OK, icon: constants.MSG.ICON.SUCCESS });
+//     setIsModified(false);
+//   } catch (error) {
+//     console.error('Error details:', error);
+//     showMessage(`An unexpected error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+//       vanishTime: 0,
+//       blinkCount: 2,
+//       button: constants.MSG.BUTTON.OK,
+//       icon: constants.MSG.ICON.DANGER,
+//     });
+//   }
+// };
 
 
+ 
 
   const isPlanActive = (date: string) => {
     const parsedDate = new Date(date);
@@ -355,26 +464,15 @@ const handleSave = async () => {
     }
   };
 
-  // Handle Global Settings Change
-  const handleGlobalChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target;
-    setGlobalSettings((prev) => ({ ...prev, [name]: value }));
-    setIsModified(true);
-  };
 
   // Handle PC-Specific Settings Change
-  const handlePcChange = (
-    index: number,
-    field: keyof PcSetting,
-    value: string | number | boolean,
-  ) => {
-    const updatedSettings = [...pcSettingsList];
-    updatedSettings[index] = { ...updatedSettings[index], [field]: value };
-    setPcSettingsList(updatedSettings);
-    setIsModified(true);
-  };
+const handlePcChange = (index: number, field: keyof PcSetting, value: string | number | boolean) => {
+  const updatedSettings = [...pcSettingsList];
+  updatedSettings[index] = { ...updatedSettings[index], [field]: value, isModified: true };
+  setPcSettingsList(updatedSettings);
+};
+
+
 
   // Render Loading State
   if (isLoading) {
@@ -386,14 +484,7 @@ const handleSave = async () => {
     <div className="container">
       <div className="header-container">
         <h1 className="title">Settings</h1>
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={!isModified}
-          className={`save-button ${isModified ? 'enabled' : ''}`}
-        >
-          Save Settings
-        </button>
+
       </div>
 
       {/* Global Settings Form */}
@@ -454,7 +545,7 @@ const handleSave = async () => {
               </select>
             </div>
           </div>
-
+   
           <div className="help-box">
             <div className="help-header">Info</div>
             {/* <div className="help-content">{helpContent}</div> */}
@@ -475,6 +566,14 @@ const handleSave = async () => {
             <table>
               <thead className="text-lg font-semibold">
                 <tr>
+                  <th
+                    onClick={() =>
+                      showHelp('Click this button to save the settings for each PC.')
+                    }
+                  >
+                    {' '}
+                    Save{' '}
+                  </th>
                   <th
                     onClick={() =>
                       showHelp('Assign the plan which you need for this PC.')
@@ -555,6 +654,18 @@ const handleSave = async () => {
                 {pcSettingsList.map((pc, index) => (
                   <tr key={pc.uuid}>
              
+              {/* Save Button */}
+    <td>
+<button
+  onClick={() => handleSaveRow(index)}
+  disabled={!pc.isModified}
+  className={`p-2 rounded ${pc.isModified ? 'bg-green-500' : 'bg-gray-400'}`}
+>
+  Save
+</button>
+
+    </td>
+
   <td className="relative">
   <div className="relative">
   <select
@@ -822,38 +933,18 @@ const handleSave = async () => {
           margin: 0;
           font-size: 32px;
         }
-
-        .save-button {
-          padding: 10px 20px;
-          background-color: #808080;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: default;
-          transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        .save-button.enabled {
-          background-color: #008000;
-          cursor: pointer;
-          box-shadow: 2px 2px 5px black;
-        }
-
-        .save-button:disabled {
-          background-color: #ccc;
-          cursor: default;
-          box-shadow: none;
-        }
-        .form-container {
-          display: flex;
-          gap: 20px; /* Space between form fields and help box */
-          align-items: flex-start; /* Align items at the top */
-        }
+ 
+  .form-container {
+  display: flex;
+  gap: 10px; /* Minimal gap between form fields and help box */
+  align-items: flex-start;
+  padding: 0px 0px 0px 0px;
+}
 
         .form-fields {
           display: flex;
           flex-direction: column;
-          gap: 20px; /* Space between each form group */
+          gap: 10px; /* Space between each form group */
           width: 65%; /* Allocate 65% width for form fields */
         }
 

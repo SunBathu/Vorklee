@@ -41,62 +41,85 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Admin email is required' }, { status: 400 });
     }
 
-    await Promise.all(
-  pcSettingsList.map(async (pcSetting: any) => {
-    const {
-      uuid,
-      adminEmail,
-      nickName,
-      planName,
-      fileType,
-      videoLength,
-      captureInterval,
-      fileQuality,
-      clientNotificationInterval,
-      lastCapturedTime,
-      storageUsed,
-      captureEnabledByDeveloper,
-      captureEnabledByAdmin,
-      sessions,
-      registrationTimestamp,
-      osVersion,
-      ipAddress,
-      devInfo,
-    } = pcSetting;
-
-    await SysFileSettingsPCWise.updateOne(
-      { uuid, adminEmail },
-      {
-        uuid,
-        adminEmail,
-        nickName,
-        planName,
-        fileType,
-        videoLength,
-        captureInterval,
-        fileQuality,
-        clientNotificationInterval,
-        lastCapturedTime,
-        storageUsed,
-        captureEnabledByDeveloper,
-        captureEnabledByAdmin,
-        sessions,
-        registrationTimestamp,
-        osVersion,
-        ipAddress,
-        devInfo,
-      }
+       // Update or insert the global settings
+    await SysFileSettingsGlobal.updateOne(
+      { adminEmail },           // Filter by adminEmail
+      { $set: globalSettings }, // Update fields
+      { upsert: true }          // Insert if not exists
     );
-  })
-);
+    
+    // await Promise.all(
+    //   pcSettingsList.map(async (pcSetting: any) => {
+    //     const {
+    //       uuid,
+    //       adminEmail,
+    //       nickName,
+    //       planName,
+    //       fileType,
+    //       videoLength,
+    //       captureInterval,
+    //       fileQuality,
+    //       clientNotificationInterval,
+    //       lastCapturedTime,
+    //       storageUsed,
+    //       captureEnabledByDeveloper,
+    //       captureEnabledByAdmin,
+    //       sessions,
+    //       registrationTimestamp,
+    //       osVersion,
+    //       ipAddress,
+    //       devInfo,
+    //     } = pcSetting;
 
+    //     await SysFileSettingsPCWise.updateOne(
+    //       { uuid, adminEmail },
+    //       {
+    //         uuid,
+    //         adminEmail,
+    //         nickName,
+    //         planName,
+    //         fileType,
+    //         videoLength,
+    //         captureInterval,
+    //         fileQuality,
+    //         clientNotificationInterval,
+    //         lastCapturedTime,
+    //         storageUsed,
+    //         captureEnabledByDeveloper,
+    //         captureEnabledByAdmin,
+    //         sessions,
+    //         registrationTimestamp,
+    //         osVersion,
+    //         ipAddress,
+    //         devInfo,
+    //       }
+    //     );
+    //   })
+    // );
 
     return NextResponse.json({ message: 'Settings saved successfully' });
-  } catch (error: any) {
-    console.error('Error saving settings:', error);
-    return NextResponse.json({ message: 'Failed to save settings', error: error.message }, { status: 500 });
+  } catch (error) {
+  let errorMessage = 'An unexpected error occurred.';
+
+  if (error instanceof Error) {
+    errorMessage = error.message;
+  } else if (typeof error === 'string') {
+    errorMessage = error;
+  } else {
+    errorMessage = JSON.stringify(error); // Log the entire error object if it's not a string or Error
   }
+
+  console.error('Error saving settings:', error);
+  console.error('Detailed error message:', errorMessage);
+
+  return NextResponse.json(
+    { message: 'Failed to save settings', error: errorMessage },
+    { status: 500 }
+  );
 }
+
+}
+
 
 export async function DELETE(req: NextRequest) {
   await dbConnect();
