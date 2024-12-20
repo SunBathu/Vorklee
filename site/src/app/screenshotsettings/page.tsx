@@ -33,9 +33,9 @@ type PcSetting = {
 
 type Plan = {
   purchaseId: string;
+  planActivationDate: string;
+  planExpiryDate: string;
   planName: string;
-  activationDates: string[]; // Ensure this is defined
-  expiryDates: string[];     // Ensure this is defined
 };
 
 type ActivePlan = {
@@ -62,15 +62,17 @@ type PurchaseRecord = {
 };
 
 export default function SettingsPage() {
-  const { data: session } = useSession();
-  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
-  const [activePlans, setActivePlans] = useState<ActivePlan[]>([]);
-  const [plans, setPlans] = useState<Plan[]>([]);
   const [globalSettings, setGlobalSettings] = useState({
     storagePath: 'SysFile',
     dateFormat: 'DD-MM-YYYY',
     whichFoldersToDeleteWhenStorageFull: 'AmongAll',
   });
+  const { data: session } = useSession();
+  const [pcSettingsList, setPcSettingsList] = useState<PcSetting[]>([]);
+  const [activePlans, setActivePlans] = useState<ActivePlan[]>([]);
+  const [availablePlans, setAvailablePlans] = useState<Plan[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
+  
   const [isModified, setIsModified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { showMessage } = useMessage();
@@ -79,71 +81,28 @@ export default function SettingsPage() {
   const [focusedRowIndex, setFocusedRowIndex] = useState<number | null>(null);
 
 useEffect(() => {
-    const fetchSettingsAndPlans = async () => {
-      if (!session?.user?.email) return;
+  const fetchSettings = async () => {
+    if (!session?.user?.email) return;
+    try {
+      const res = await fetch(`/api/screenshotsettings?adminEmail=${session?.user?.email}`);
+      if (!res.ok) throw new Error('Failed to fetch settings');
 
-      try {
-        const [response, plansResponse] = await Promise.all([
-          fetch(`/api/screenshotsettings?adminEmail=${session.user.email}`),
-          fetch(`/api/activePlans?adminEmail=${session.user.email}`),
-        ]);
-// Fetch active plans
-const fetchActivePlans = async () => {
-  const res = await fetch(`/api/activePlans?adminEmail=${session.user.email}`);
-  const data = await res.json();
-  setActivePlans(data.plans || []);
-};
+      const data = await res.json();
+      setPcSettingsList(data.pcSettings || []);
+      setAvailablePlans(data.availablePlans || []);
+      setGlobalSettings(data.globalSettings || {});
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      setIsLoading(false);
+    }
+  };
 
-// Fetch aggregated plans (if needed)
-const fetchAggregatedPlans = async () => {
-  const res = await fetch(`/api/aggregatedPlans?adminEmail=${session.user.email}`);
-  const data = await res.json();
-  setPlans(data.plans || []);
-};
-
-        if (!response.ok || !plansResponse.ok) {
-          showMessage('Failed to fetch settings or plans.', {
-            vanishTime: 0,
-            blinkCount: 2,
-            button: constants.MSG.BUTTON.OK,
-            icon: constants.MSG.ICON.ALERT,
-          });
-          setIsLoading(false);
-          return;
-        }
-
-        const data = await response.json();
-        const activePlansData = await plansResponse.json();
-        setActivePlans(activePlansData.plans || []);
-        // const { plans } = await plansResponse.json();
-        setPlans(activePlansData.plans || []);
-
-setGlobalSettings(data.globalSettings || {});
-console.log('Global Settings:', data.globalSettings);
-
-setPcSettingsList(data.pcSettings.map((pc: PcSetting) => ({ ...pc, isModified: false })));
-
-console.log('PC Settings List:', data.pcSettings);
-
-// setPlans(plans || []);
-console.log('Plans:', plans);
-
-        setIsLoading(false);
-
-      } catch (err) {
-        showMessage('An unexpected error occurred. Please try again later.', {
-          vanishTime: 0,
-          blinkCount: 2,
-          button: constants.MSG.BUTTON.OK,
-          icon: constants.MSG.ICON.DANGER,
-        });
-        setIsLoading(false);
-      }
-    };
-
-    fetchSettingsAndPlans();
+  if (session?.user?.email) {
+    fetchSettings(); // Call fetchSettings when session is available
+  }
 }, [session]);
-   
+
 //fnNeed. Handle Delettion of the pcSetting row.  
 const handleDelete = async (uuid: string, nickName: string) => {
     const userInput = prompt(
@@ -208,7 +167,7 @@ Tip: You can Off the Capture instead of deleting the client.`,
     }
 };
 
-// fnNeed. Handle Global Settings Change.
+//fnNeed. Handle Global Settings Change.
 const handleGlobalChange = async (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
   const { name, value } = e.target;
   const updatedSettings = { ...globalSettings, [name]: value };
@@ -226,7 +185,7 @@ const handleGlobalChange = async (e: ChangeEvent<HTMLInputElement | HTMLSelectEl
   }
 };
 
-// fnNeed. Post request for global settings.
+//fnNeed. Save global settings.
 const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   try {
     const response = await fetch('/api/screenshotsettings', {
@@ -268,6 +227,61 @@ const handleSaveGlobal = async (updatedSettings: GlobalSettings) => {
   }
 };
 
+//fnNeed. Save the row.
+const handleSaveRow = async (index: number) => {
+  const pcToSave = pcSettingsList[index];
+
+  if (!session?.user?.email) {
+    showMessage('You must be logged in to save settings.', {
+      vanishTime: 3000,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.ALERT,
+    });
+    return;
+  }
+
+  try {
+    const payload = {
+      pcSettingsList: [pcToSave], // Only send pcSettingsList
+      adminEmail: session.user.email,
+    };
+
+    console.log('Saving PC Settings:', payload); // Debug log
+
+    const response = await fetch('/api/screenshotsettings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const responseData = await response.json();
+    console.log('Response Data:', responseData);
+
+    if (response.ok) {
+      const updatedSettings = [...pcSettingsList];
+      updatedSettings[index].isModified = false;
+      setPcSettingsList(updatedSettings);
+      showMessage('Settings saved successfully.', {
+        vanishTime: 3000,
+        blinkCount: 0,
+        button: constants.MSG.BUTTON.OK,
+        icon: constants.MSG.ICON.SUCCESS,
+      });
+    } else {
+      throw new Error(responseData.message || 'Failed to save settings.');
+    }
+  } catch (error) {
+    console.error('Save Error:', error);
+    showMessage(`An error occurred: ${error instanceof Error ? error.message : 'Unknown error'}`, {
+      vanishTime: 0,
+      blinkCount: 2,
+      button: constants.MSG.BUTTON.OK,
+      icon: constants.MSG.ICON.DANGER,
+    });
+  }
+};
+
   const handlePlanAssignment = (index: number, selectedPurchaseId: string) => {
   setPcSettingsList((prev) => {
     const newSettings = [...prev];
@@ -291,38 +305,6 @@ const getAppNameByPlan = (planName: string): string | null => {
     return null;
 };
 
-const handleSaveRow = async (index: number) => {
-  const pcToSave = pcSettingsList[index];
-
-  try {
-    const response = await fetch('/api/screenshotsettings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ pcSettings: [pcToSave], adminEmail: session?.user?.email }),
-    });
-
-    if (response.ok) {
-      const updatedSettings = [...pcSettingsList];
-      updatedSettings[index].isModified = false;
-      setPcSettingsList(updatedSettings);
-      showMessage('Settings saved successfully.', {
-        vanishTime: 3000,
-        blinkCount: 0,
-        button: constants.MSG.BUTTON.OK,
-        icon: constants.MSG.ICON.SUCCESS,
-      });
-    } else {
-      throw new Error('Failed to save settings.');
-    }
-  } catch (error) {
-    showMessage('An unexpected error occurred. Please try again.', {
-      vanishTime: 0,
-      blinkCount: 2,
-      button: constants.MSG.BUTTON.OK,
-      icon: constants.MSG.ICON.DANGER,
-    });
-  }
-};
 
 // const handleSave = async () => {
 //   showMessage('', { vanishTime: 0, blinkCount: 0, button: constants.MSG.BUTTON.NONE, icon: constants.MSG.ICON.IMPORTANT });
@@ -662,15 +644,16 @@ return (
 
   <td className="relative">
   <div className="relative">
+ 
   <select
-  value={pcSettingsList[index].planName || ''} // Set value to purchaseId
-  onChange={(e) => handlePlanAssignment(index, e.target.value)}
-  className="p-2 border rounded"
->
-  <option value=""></option>
-  {activePlans.map((plan) => (
-    <option key={plan.purchaseId} value={plan.purchaseId}>
-      {`[${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
+    value={pcSettingsList[index].planName || ''}
+    onChange={(e) => handlePcChange(index, 'planName', e.target.value)}
+    className="p-2 border rounded"
+  >
+    <option value=""></option>
+    {availablePlans.map((plan) => (
+      <option key={plan.purchaseId} value={plan.purchaseId}>
+{`[${new Date(plan.planActivationDate).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -680,9 +663,8 @@ return (
         day: 'numeric',
       })}] - ${plan.planName}`}
     </option>
-  ))}
-</select>
-
+    ))}
+  </select>
 
   </div>
 </td>

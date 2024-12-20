@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/utils/dbConnect';
 import SysFileSettingsGlobal from '@/models/SysFileSettingsGlobal';
 import SysFileSettingsPCWise from '@/models/SysFileSettingsPCWise';
-import purchaseRecords from '@/models/PurchaseRecords';
+import PurchaseRecords from '@/models/PurchaseRecords';
 
 export async function GET(req: NextRequest) {
   await dbConnect();
@@ -13,18 +13,42 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: 'Admin email is required' }, { status: 400 });
     }
 
-    // Fetch global settings, PC settings (sorted by nickName), and active purchase plans
-    const [globalSettings, pcSettings, activePlans] = await Promise.all([
+    const today = new Date();
+
+    // Fetch global settings and PC settings
+    const [globalSettings, pcSettings, purchaseRecords] = await Promise.all([
       SysFileSettingsGlobal.findOne({ adminEmail }),
-      SysFileSettingsPCWise.find({ adminEmail }).sort({ nickName: 1 }), // Sort in ascending order by nickName
-      purchaseRecords.find({ adminEmail, planExpiryDate: { $gte: new Date() } }),
+      SysFileSettingsPCWise.find({ adminEmail }),
+      PurchaseRecords.find({
+        adminEmail,
+        isAllowedUser: true,
+        appName: 'Screenshot Capture App',
+        planExpiryDate: { $gte: today },
+      }),
     ]);
 
-    if (!globalSettings && pcSettings.length === 0) {
-      return NextResponse.json({ message: 'No settings found for this admin email.' }, { status: 404 });
-    }
+    // Get the purchase IDs
+    const purchaseIds = purchaseRecords.map((record) => record.purchaseId);
 
-    return NextResponse.json({ globalSettings, pcSettings, purchasedPlans: activePlans });
+    // Aggregate to count the usage of each purchaseId in SysFileSettingsPCWise
+    const usageCounts = await SysFileSettingsPCWise.aggregate([
+      { $match: { planName: { $in: purchaseIds } } },
+      { $group: { _id: '$planName', count: { $sum: 1 } } },
+    ]);
+
+    // Create a lookup map for usage counts
+    const usageMap = usageCounts.reduce((map, { _id, count }) => {
+      map[_id] = count;
+      return map;
+    }, {} as Record<string, number>);
+
+    // Filter purchase records based on usage counts
+    const filteredPurchaseRecords = purchaseRecords.filter((record) => {
+      const assignedCount = usageMap[record.purchaseId] || 0;
+      return assignedCount < record.canUseInThisManyPC;
+    });
+
+    return NextResponse.json({ globalSettings, pcSettings, availablePlans: filteredPurchaseRecords });
   } catch (error: any) {
     console.error('Error fetching settings:', error);
     return NextResponse.json({ message: 'Failed to fetch settings', error: error.message }, { status: 500 });
@@ -42,39 +66,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Admin email is required' }, { status: 400 });
     }
 
-       // Update or insert the global settings
-    await SysFileSettingsGlobal.updateOne(
-      { adminEmail },           // Filter by adminEmail
-      { $set: globalSettings }, // Update fields
-      //{ upsert: true }          // Insert if not exists. YOU MUST NOT ENABLE THIS. We will create only when the first time admin purchase the plan. Not only that it prevents globalsettings save.
-    );
-    
-    await Promise.all(
-      pcSettingsList.map(async (pcSetting: any) => {
-        const {
-          uuid,
-          adminEmail,
-          nickName,
-          planName,
-          fileType,
-          videoLength,
-          captureInterval,
-          fileQuality,
-          clientNotificationInterval,
-          lastCapturedTime,
-          storageUsed,
-          captureEnabledByDeveloper,
-          captureEnabledByAdmin,
-          sessions,
-          registrationTimestamp,
-          osVersion,
-          ipAddress,
-          devInfo,
-        } = pcSetting;
+    // Conditionally update global settings if present
+    if (globalSettings) {
+      await SysFileSettingsGlobal.updateOne(
+        { adminEmail },
+        { $set: globalSettings }
+      );
+    }
 
-        await SysFileSettingsPCWise.updateOne(
-          { uuid, adminEmail },
-          {
+    // Update PC settings
+    if (pcSettingsList && pcSettingsList.length > 0) {
+      await Promise.all(
+        pcSettingsList.map(async (pcSetting: any) => {
+          const {
             uuid,
             adminEmail,
             nickName,
@@ -93,10 +97,34 @@ export async function POST(req: NextRequest) {
             osVersion,
             ipAddress,
             devInfo,
-          }
-        );
-      })
-    );
+          } = pcSetting;
+
+          await SysFileSettingsPCWise.updateOne(
+            { uuid, adminEmail },
+            {
+              uuid,
+              adminEmail,
+              nickName,
+              planName,
+              fileType,
+              videoLength,
+              captureInterval,
+              fileQuality,
+              clientNotificationInterval,
+              lastCapturedTime,
+              storageUsed,
+              captureEnabledByDeveloper,
+              captureEnabledByAdmin,
+              sessions,
+              registrationTimestamp,
+              osVersion,
+              ipAddress,
+              devInfo,
+            }
+          );
+        })
+      );
+    }
 
     return NextResponse.json({ message: 'Settings saved successfully' });
   } catch (error) {
@@ -106,19 +134,12 @@ export async function POST(req: NextRequest) {
     errorMessage = error.message;
   } else if (typeof error === 'string') {
     errorMessage = error;
-  } else {
-    errorMessage = JSON.stringify(error); // Log the entire error object if it's not a string or Error
+  } else if (error && typeof error === 'object' && 'message' in error) {
+    errorMessage = String(error.message);
   }
 
   console.error('Error saving settings:', error);
-  console.error('Detailed error message:', errorMessage);
-
-  return NextResponse.json(
-    { message: 'Failed to save settings', error: errorMessage },
-    { status: 500 }
-  );
-}
-
+  return NextResponse.json({ message: 'Failed to save settings', error: errorMessage }, { status: 500 });}
 }
 
 
