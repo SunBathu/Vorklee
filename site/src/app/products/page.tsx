@@ -20,57 +20,68 @@ export default function ProductsPage() {
   const router = useRouter();
   const { showMessage } = useMessage();
 
-  const handleFreeTrialClick = async (
-    appName: string,
-    planName: string,
-    planTiers: string,
-  ) => {
-    if (!session) {
-      signIn('google');
-      return;
+const handleFreeTrialClick = async (
+  appName: string,
+  planName: string,
+  planTiers: string,
+) => {
+  if (!session) {
+    signIn('google');
+    return;
+  }
+
+  try {
+    const adminEmail = session?.user?.email; // Ensure email is fetched from session
+    if (!adminEmail) {
+      throw new Error('Admin email is not available in session');
     }
-console.log(appName, planName, planTiers);
 
+    const response = await fetch(
+      `/api/purchases?adminEmail=${encodeURIComponent(adminEmail)}`,
+    );
+    const data = await response.json();
 
-    try {
-      const response = await fetch('/api/purchases');
-      const data: Purchase[] = await response.json();
-      console.log('API Data:', data);
-      
-      const freeTrialExists = data.some(
-        (purchase) =>
-          purchase.appName === appName &&
-          purchase.planName === planName &&
-          purchase.planTiers === planTiers,
+    console.log('API Full Response:', data);
+
+    if (!Array.isArray(data)) {
+      throw new Error('Invalid response: expected an array of purchases.');
+    }
+
+    const freeTrialExists = data.some(
+      (purchase) =>
+        purchase.appName === appName &&
+        purchase.planName === planName &&
+        purchase.planTiers.toLowerCase().includes('free trial'),
+    );
+
+    if (freeTrialExists) {
+      showMessage(
+        'You have already registered for a Free Trial for this app.',
+        {
+          vanishTime: 0,
+          blinkCount: 4,
+          button: constants.MSG.BUTTON.OK,
+          icon: 'alert',
+        },
       );
-      console.log('Free Trial Exists:', freeTrialExists);
-
-      if (freeTrialExists) {
-        showMessage(
-          'You have already registered for a Free Trial for this app.',
-          {
-            vanishTime: 0,
-            blinkCount: 4,
-            button: constants.MSG.BUTTON.OK,
-            icon: 'alert',
-          }
-        );
-       
-      } else {
-        router.push(
-          `/payment?appName=${appName}&planName=${planName}&planTiers=${planTiers}`,
-        );
-      }
-    } catch (error) {
-      console.error('Error fetching purchases:', error);
-      showMessage('An error occurred while checking your purchases.', {
-        vanishTime: 0,
-        blinkCount: 0,
-        button: constants.MSG.BUTTON.OK,
-        icon: 'alert',
-      });
+    } else {
+      router.push(
+        `/payment?appName=${appName}&planName=${planName}&planTiers=${planTiers}`,
+      );
     }
-  };
+  } catch (error) {
+    console.error('Error fetching purchases:', error);
+    showMessage('An error occurred while checking your purchases.', {
+      vanishTime: 0,
+      blinkCount: 0,
+      button: constants.MSG.BUTTON.OK,
+      icon: 'alert',
+    });
+  }
+};
+
+
+
 
   const handleGoToPayment = (
     appName: string,

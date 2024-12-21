@@ -109,7 +109,7 @@ export default function PurchasesPage() {
               <th className="p-3">Plan</th>
               <th className="p-3">Tiers</th>
               <th className="p-3">Qty</th>
-              <th className="p-3">Allowed PC</th>
+              {/* <th className="p-3">Allowed PC</th> */}
               <th className="p-3">Price (USD)</th>
               <th className="p-3">Total (USD)</th>
               <th className="p-3">Payment Method</th>
@@ -140,7 +140,7 @@ export default function PurchasesPage() {
       return (
         <tr
           key={purchase.purchaseId}
-          className={`border-b ${
+          className={`border-b border-gray-300 ${
             isExpired ? 'bg-red-100' : 'bg-green-100' // Light red for expired, light green for non-expired
           }`}
         >
@@ -159,7 +159,7 @@ export default function PurchasesPage() {
           <td className="p-3">{purchase.planName}</td>
           <td className="p-3">{purchase.planTiers}</td>
           <td className="p-3">{purchase.quantity}</td>
-          <td className="p-3">{purchase.canUseInThisManyPC}</td>
+          {/* <td className="p-3">{purchase.canUseInThisManyPC}</td> */}
           <td className="p-3">${afterDiscountUnitPriceInUSD}</td>
           <td className="p-3">${afterDiscountTotalPriceInUSD}</td>
           <td className="p-3">{purchase.paymentMethod}</td>
@@ -174,11 +174,14 @@ export default function PurchasesPage() {
             })}
           </td>
           <td className="p-3">
-            {new Date(purchase.planActivationDate).toLocaleDateString(undefined, {
-              year: 'numeric',
-              month: 'short',
-              day: 'numeric',
-            })}
+            {new Date(purchase.planActivationDate).toLocaleDateString(
+              undefined,
+              {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+              },
+            )}
           </td>
           <td className="p-3">
             {new Date(purchase.planExpiryDate).toLocaleDateString(undefined, {
@@ -195,16 +198,27 @@ export default function PurchasesPage() {
                 purchase.autoRenewal ? 'text-green-500' : 'text-red-500'
               }`}
               onClick={() =>
-                handleAutoRenewalToggle(purchase.purchaseId, purchase.autoRenewal)
+                handleAutoRenewalToggle(
+                  purchase.purchaseId,
+                  purchase.autoRenewal,
+                )
               }
-              title={purchase.autoRenewal ? 'Disable Auto-Renewal' : 'Enable Auto-Renewal'}
+              title={
+                purchase.autoRenewal
+                  ? 'Disable Auto-Renewal'
+                  : 'Enable Auto-Renewal'
+              }
             />
           </td>
 
           <td className="p-3">
             <button
               onClick={() =>
-                handleRenew(purchase.appName, purchase.planName, purchase.planTiers)
+                handleRenew(
+                  purchase.appName,
+                  purchase.planName,
+                  purchase.planTiers,
+                )
               }
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
             >

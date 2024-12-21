@@ -57,6 +57,23 @@ export default function Sidebar() {
           </li>
           <li>
             <Link
+              href="/products"
+              className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
+            >
+              Products
+            </Link>
+          </li>
+          <li>
+            <Link
+              href="/purchases"
+              onClick={(e) => handleProtectedClick(e, '/purchases')}
+              className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
+            >
+              Purchases
+            </Link>
+          </li>
+          <li>
+            <Link
               href="/screenshotsettings"
               onClick={(e) => handleProtectedClick(e, '/screenshotsettings')}
               className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
@@ -71,23 +88,6 @@ export default function Sidebar() {
               className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
             >
               Notes
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/products"
-              className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
-            >
-              Products
-            </Link>
-          </li>
-          <li>
-            <Link
-              href="/purchases"
-              onClick={(e) => handleProtectedClick(e, '/purchases')}
-              className="text-lg block hover:text-blue-400 transition-colors cursor-pointer"
-            >
-              Purchases
             </Link>
           </li>
         </ul>
