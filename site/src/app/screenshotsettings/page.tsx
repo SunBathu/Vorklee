@@ -879,7 +879,7 @@ Tip: You can Off the Capture instead of deleting the client.`,
           </div>
         </form>
       </div>
-      );
+      
       <style jsx>{`
         .container {
           width: 100%;
