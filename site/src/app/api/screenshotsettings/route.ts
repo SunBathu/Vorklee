@@ -15,10 +15,10 @@ export async function GET(req: NextRequest) {
 
     const today = new Date();
 
-    // Fetch global settings and PC settings
+    // Fetch global settings, PC settings, and purchase records
     const [globalSettings, pcSettings, purchaseRecords] = await Promise.all([
       SysFileSettingsGlobal.findOne({ adminEmail }),
-      SysFileSettingsPCWise.find({ adminEmail }),
+      SysFileSettingsPCWise.find({ adminEmail }).sort({ nickName: 1 }),
       PurchaseRecords.find({
         adminEmail,
         isAllowedUser: true,
@@ -26,6 +26,8 @@ export async function GET(req: NextRequest) {
         planExpiryDate: { $gte: today },
       }),
     ]);
+
+    console.log('All Purchase Records:', purchaseRecords); // Debugging
 
     // Get the purchase IDs
     const purchaseIds = purchaseRecords.map((record) => record.purchaseId);
@@ -48,12 +50,31 @@ export async function GET(req: NextRequest) {
       return assignedCount < record.canUseInThisManyPC;
     });
 
-    return NextResponse.json({ globalSettings, pcSettings, availablePlans: filteredPurchaseRecords });
-  } catch (error: any) {
-    console.error('Error fetching settings:', error);
-    return NextResponse.json({ message: 'Failed to fetch settings', error: error.message }, { status: 500 });
+    console.log('Filtered Purchase Records:', filteredPurchaseRecords); // Debugging
+
+    // Return both filtered and unfiltered purchase records
+    return NextResponse.json({
+      globalSettings,
+      pcSettings,
+      purchaseRecords, // Unfiltered records
+      availablePlans: filteredPurchaseRecords, // Filtered records
+    });
+  } catch (error) {
+    let errorMessage = 'An unexpected error occurred.';
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = JSON.stringify(error);
+    }
+
+    console.error('Error fetching settings:', errorMessage);
+
+    return NextResponse.json({ message: 'Failed to fetch settings', error: errorMessage }, { status: 500 });
   }
 }
+
 
 
 export async function POST(req: NextRequest) {
